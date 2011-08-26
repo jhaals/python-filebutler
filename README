@@ -11,8 +11,8 @@ Client
 
 Server
 *   Create two folders, database and files with read/write access for your user and the webserver.
-*   Put the php script in your webroot
-*   Create two directories defined in ppupload.conf. (database and files)
+*   Put download.php in your webroot
+*   Define the two directories in download.php
 
 Upload files!
 
