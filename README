@@ -1,0 +1,18 @@
+ppUpload is a simple pythonscript that let you upload files over scp to your remote webserver and returns a download url.
+ppUpload creates a database file for every uploaded file with settings such as password, expiration time and ammount of downloads. On the server side a php script is placed in your webroot, the php script then reads your database.
+
+INSTALL
+
+Client
+*   Install python requirements using pip
+        pip install -r requirements.txt
+*   exchange rsa keys with the server
+*   configure ppupload.conf and place it under ~/.ppupload.conf
+
+Server
+*   Create two folders, database and files with read/write access for your user and the webserver.
+*   Put the php script in your webroot
+*   Create two directories defined in ppupload.conf. (database and files)
+
+Upload files!
+
