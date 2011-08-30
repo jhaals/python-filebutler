@@ -39,7 +39,9 @@ else:
     one_time_download = 0
 
 if options.password:
-    password = options.password
+    password = hashlib.new('md5')
+    password.update(options.password)
+    password = password.hexdigest()
 else:
     password = ''
 
@@ -93,7 +95,7 @@ except OSError as error:
 
 # Generate download hash (should be rewritten) 
 microtime = datetime.now().strftime('%f')
-download_hash = hashlib.new('ripemd160')
+download_hash = hashlib.new('md5')
 download_hash.update(microtime+filename)
 download_hash = download_hash.hexdigest()
 
