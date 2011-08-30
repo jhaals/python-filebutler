@@ -1,2 +1,5 @@
 Add password support(download.php)
 Secure input(download.php)
+
+Future:
+Create a twisted ssh server for file transfers.
