@@ -21,7 +21,7 @@ usage = 'usage: %prog -h'
 parser = OptionParser(usage, version="%prog 0.1")
 parser.add_option("--file", "-f", help='Specify file to upload')
 parser.add_option("--onetime", "-1", help='One time download(optional)', default=False, action='store_true')
-parser.add_option("--lifetime", "-l", help='Lifetime(optional): 1d, 1w, 1m (day/week/month). Default lifetime is unlimited')
+parser.add_option("--lifetime", "-l", help='Lifetime(optional): 1h, 1d, 1w, 1m (hour/day/week/month). Default lifetime is unlimited')
 parser.add_option("--password", "-p", help='Download password(optional)')
 
 (options, args) = parser.parse_args()
@@ -44,16 +44,18 @@ else:
     password = ''
 
 if options.lifetime:
-
-    if options.lifetime == '1d':
+    if options.lifetime == '1h':
+        lifetime = datetime.now() + relativedelta(hours=1)
+        expire = lifetime.strftime('%Y%m%d%H%M')
+    elif options.lifetime == '1d':
         lifetime = datetime.now() + relativedelta(days=1)
-        expire = lifetime.strftime('%Y%m%d%M')
+        expire = lifetime.strftime('%Y%m%d%H%M')
     elif options.lifetime == '1w':
         lifetime = datetime.now() + relativedelta(weeks=1)
-        expire = lifetime.strftime('%Y%m%d%M')
+        expire = lifetime.strftime('%Y%m%d%H%M')
     elif options.lifetime == '1m':
         lifetime = datetime.now() + relativedelta(weeks=4)
-        expire = lifetime.strftime('%Y%m%d%M')
+        expire = lifetime.strftime('%Y%m%d%H%M')
     else:
         parser.error('Unknown lifetime')
 else:
@@ -104,7 +106,6 @@ if len(error) != 0:
     sys.exit('Error: %s' % error)
 else:
 # everything should be fine, print download url
-    print config.get('remote', 'url')+download_hash
     download_url = config.get('remote', 'url')+download_hash
     if sys.platform == 'darwin':
         os.system('echo %s | pbcopy' % download_url)
