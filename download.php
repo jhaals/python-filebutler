@@ -1,6 +1,7 @@
 <?
 $DATABASE = '/path/to/database/';
 $FILES = '/path/to/files/';
+$DEBUG = False;
 $id = $_GET['u'];
 
 /*
@@ -66,7 +67,29 @@ if(file_exists($DATABASE.$id)) {
 	$file = fopen($DATABASE.$id,'r');
 	$contents = fread($file, filesize($DATABASE.$id));
 	list($filename, $password, $expire, $one_time_download) = split(":", $contents);
-	
+
+	if($password) {
+		if($_POST) {
+			if(md5($_POST['password']) != $password) {
+				die('Invalid password');
+			}
+		} else {
+			?><html>
+				<head>
+					<title>Password protected file</title>
+				</head>
+				<body>
+					<form action="" method="post">
+					Password: <input type="password" name="password">
+					<input type="submit" value="download">
+					</form>
+				</body>
+			</html>
+	<?
+		die();
+		}
+	}
+
 	// Check if requested file exists
 	if(file_exists($FILES.$filename)) {
 	
@@ -78,12 +101,16 @@ if(file_exists($DATABASE.$id)) {
      			// valid
      			downloadFile($FILES.$filename);
      		} else {
+     			if($DEBUG) {
+     				$debugmsg .= 'Expired...<br/>';
+     			}
      			// Invalid
      			// Set one_time_download to 1. Files will be deleted.
      			$one_time_download = 1;
      		}
 		} else {
             // Valid URL and existing file
+            $debugmsg .= 'Serving file...<br/>';
 		    downloadFile($FILES.$filename);	
 		}
 		fclose($file);
@@ -92,7 +119,21 @@ if(file_exists($DATABASE.$id)) {
 		if($one_time_download == 1) {
 			unlink($DATABASE.$id);
        		unlink($FILES.$filename);
+       		if($DEBUG) {
+       			$debugmsg .= 'One time download set to 1, deleted files<br/>';
+       		}
 		}
+	} else {
+		if($DEBUG) {
+			$debugmsg .= 'Requested file does not exist<br/>';
+		} 
 	}
+} else {
+	if ($DEBUG) {
+		$debugmsg .= 'Could not find id in database<br/>';
+	}
+}
+if($DEBUG) {
+	print $debugmsg;
 } 
 ?>
