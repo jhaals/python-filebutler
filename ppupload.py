@@ -105,6 +105,10 @@ if len(error) != 0:
 else:
 # everything should be fine, print download url
     print config.get('remote', 'url')+download_hash
+    download_url = config.get('remote', 'url')+download_hash
+    if sys.platform == 'darwin':
+        os.system('echo %s | pbcopy' % download_url)
+    print download_url
 
 # Close connections
 sftp.close()
