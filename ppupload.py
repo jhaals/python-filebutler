@@ -9,7 +9,6 @@ import ConfigParser as configparser
 import requests
 from os.path import join
 from datetime import datetime
-from dateutil.relativedelta import *
 from optparse import OptionParser
 from poster.encode import multipart_encode
 from datetime import datetime, timedelta
@@ -39,9 +38,9 @@ else:
     filename = os.path.basename(options.file)
 
 if options.onetime:
-    one_time_download = 1
+    one_time_download = '1'
 else:
-    one_time_download = 0
+    one_time_download = '0'
 
 if options.password:
     password = hashlib.new('md5')
@@ -53,17 +52,13 @@ else:
 # lifetime (should be moved to the upload script on the server)
 if options.lifetime:
     if options.lifetime == '1h':
-        lifetime = datetime.now() + relativedelta(hours=1)
-        expire = lifetime.strftime('%Y%m%d%H%M')
+        expire = '1h'
     elif options.lifetime == '1d':
-        lifetime = datetime.now() + relativedelta(days=1)
-        expire = lifetime.strftime('%Y%m%d%H%M')
+        expire = '1d'
     elif options.lifetime == '1w':
-        lifetime = datetime.now() + relativedelta(weeks=1)
-        expire = lifetime.strftime('%Y%m%d%H%M')
+        expire = '1w'
     elif options.lifetime == '1m':
-        lifetime = datetime.now() + relativedelta(weeks=4)
-        expire = lifetime.strftime('%Y%m%d%H%M')
+        expire '1m'
     else:
         parser.error('Unknown lifetime')
 else:
