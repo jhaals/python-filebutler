@@ -32,6 +32,10 @@ if not options.file:
 elif not os.path.isfile(options.file):
     sys.exit('File does not exist')
 else:
+    try:
+        upload_file = open(options.file, 'rb')
+    except IOError:
+        sys.exit('Could not open %s') % options.file
     filename = os.path.basename(options.file)
 
 if options.onetime:
@@ -93,7 +97,7 @@ class ProgressMeter(object):
 half_a_second = 500000
 
 postdata = {
-    'uploaded': open('/Users/jhaals/Desktop/brooks_bottom.jpg', 'rb'),
+    'uploaded': upload_file,
     'username': config.get('settings', 'username'),
     'password': config.get('settings', 'password'),
     'filename': filename,
