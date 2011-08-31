@@ -65,12 +65,6 @@ if options.lifetime:
 else:
     expire = ''
 
-# Generate download hash (should be rewritten) 
-microtime = datetime.now().strftime('%f')
-download_hash = hashlib.new('md5')
-download_hash.update(microtime+filename)
-download_hash = download_hash.hexdigest()
-
 class ProgressMeter(object):
     def __init__(self, microseconds=1000000):
         self.started_at = None
