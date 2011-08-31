@@ -4,19 +4,20 @@
 
 import hashlib
 import os
-import paramiko
 import sys
 import ConfigParser as configparser
+import requests
 from os.path import join
 from datetime import datetime
 from dateutil.relativedelta import *
 from optparse import OptionParser
+from poster.encode import multipart_encode
+from datetime import datetime, timedelta
 
 config = configparser.RawConfigParser()
 if not config.read([os.path.expanduser('~/.ppupload.conf') or 'ppupload.conf', '/etc/ppupload.conf']):
     sys.exit("Couldn't read configuration file")
 
-#config.get('remote', 'username')
 usage = 'usage: %prog -h'
 parser = OptionParser(usage, version="%prog 0.1")
 parser.add_option("--file", "-f", help='Specify file to upload')
@@ -41,10 +42,11 @@ else:
 if options.password:
     password = hashlib.new('md5')
     password.update(options.password)
-    password = password.hexdigest()
+    download_password = password.hexdigest()
 else:
-    password = ''
+    download_password = ''
 
+# lifetime (should be moved to the upload script on the server)
 if options.lifetime:
     if options.lifetime == '1h':
         lifetime = datetime.now() + relativedelta(hours=1)
@@ -63,56 +65,56 @@ if options.lifetime:
 else:
     expire = ''
 
-ssh = paramiko.SSHClient()
-ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-# Use private key to authenticate to server
-try:
-    privkey = paramiko.RSAKey.from_private_key_file (config.get('local', 'private_rsa_key'))
-except IOError:
-    sys.exit('Could not open private key, check location')
-except paramiko.PasswordRequiredException:
-    sys.exit('Private key file is encrypted')
-
-# Connecting!
-try:
-    ssh.connect(config.get('remote', 'hostname'), username=config.get('remote', 'username'),pkey=privkey, timeout=10)
-except paramiko.AuthenticationException:
-    sys.exit('Authentication failed. Check username/private key')
-except SSHException as error:
-    sys.exit(error)
-except socket.error as error:
-    sys.exit(error)
- 
-#Transfering files to and from the remote machine
-sftp = ssh.open_sftp()
-try:
-    sftp.put(options.file, join(config.get('remote', 'storage_path'), filename))
-except IOError as error:
-    sys.exit('Permission denied, check permissions. Error msg: %s' % error)
-except OSError as error:
-    sys.exit(error)
-
 # Generate download hash (should be rewritten) 
 microtime = datetime.now().strftime('%f')
 download_hash = hashlib.new('md5')
 download_hash.update(microtime+filename)
 download_hash = download_hash.hexdigest()
 
-# Write database file on remote host
-ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('echo "%s:%s:%s:%s" >> %s%s' % (filename, password, expire, one_time_download, config.get('remote', 'database_path'), download_hash))
-error = ssh_stderr.read()
+class ProgressMeter(object):
+    def __init__(self, microseconds=1000000):
+        self.started_at = None
+        self.timeout = microseconds
+        self.previous_length = 0
 
-#Reading the error stream of the executed command
-if len(error) != 0:
-    sys.exit('Error: %s' % error)
-else:
-# everything should be fine, print download url
-    download_url = config.get('remote', 'url')+download_hash
-    if sys.platform == 'darwin':
-        os.system('echo %s | pbcopy' % download_url)
-    print download_url
+    def __call__(self, param, current, total):
+        if self.started_at is None:
+            self.started_at = datetime.now()
+        else:
+            if datetime.now() - self.started_at > timedelta(microseconds=self.timeout):
+                line = '{filename} {percent:.1%}'.format(
+                    filename = param.name,
+                    percent = current / float(total)
+                )
 
-# Close connections
-sftp.close()
-ssh.close()
+                sys.stdout.write('\b' * self.previous_length)
+                sys.stdout.write(line)
+                sys.stdout.flush()
+
+                self.previous_length = len(line)
+
+                self.started_at = datetime.now()
+
+
+half_a_second = 500000
+
+postdata = {
+    'uploaded': open('/Users/jhaals/Desktop/brooks_bottom.jpg', 'rb'),
+    'username': config.get('settings', 'username'),
+    'password': config.get('settings', 'password'),
+    'filename': filename,
+    'download_password': download_password,
+    'one_time_download': one_time_download,
+}
+datagen, headers = multipart_encode(postdata,
+    cb = ProgressMeter(half_a_second)
+)
+
+r = requests.post(config.get('settings', 'upload_url'), data=datagen, headers=headers)
+print r.content
+# parse results from server....
+
+#    download_url = config.get('remote', 'url')+download_hash
+#    if sys.platform == 'darwin':
+#        os.system('echo %s | pbcopy' % download_url)
+#    print download_url
