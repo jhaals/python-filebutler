@@ -58,7 +58,7 @@ if options.lifetime:
     elif options.lifetime == '1w':
         expire = '1w'
     elif options.lifetime == '1m':
-        expire '1m'
+        expire = '1m'
     else:
         parser.error('Unknown lifetime')
 else:
