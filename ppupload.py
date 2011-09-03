@@ -43,26 +43,16 @@ else:
     one_time_download = '0'
 
 if options.password:
-    password = hashlib.new('md5')
-    password.update(options.password)
-    download_password = password.hexdigest()
+    download_password = hashlib.md5(options.password).hexdigest()
 else:
     download_password = ''
 
+expire = ''
 # lifetime (should be moved to the upload script on the server)
-if options.lifetime:
-    if options.lifetime == '1h':
-        expire = '1h'
-    elif options.lifetime == '1d':
-        expire = '1d'
-    elif options.lifetime == '1w':
-        expire = '1w'
-    elif options.lifetime == '1m':
-        expire = '1m'
-    else:
-        parser.error('Unknown lifetime')
+if options.lifetimes in ['1h', '1d', '1w', '1m']:
+    expire = options.lifetime
 else:
-    expire = ''
+    parser.error('Unknown lifetime')
 
 class ProgressMeter(object):
     def __init__(self, microseconds=1000000):
@@ -85,9 +75,7 @@ class ProgressMeter(object):
                 sys.stdout.flush()
 
                 self.previous_length = len(line)
-
                 self.started_at = datetime.now()
-
 
 half_a_second = 500000
 
@@ -98,6 +86,7 @@ postdata = {
     'filename': filename,
     'download_password': download_password,
     'one_time_download': one_time_download,
+    'expire': expire
 }
 datagen, headers = multipart_encode(postdata,
     cb = ProgressMeter(half_a_second)
