@@ -48,11 +48,8 @@ else:
     download_password = ''
 
 expire = ''
-# lifetime (should be moved to the upload script on the server)
-if options.lifetimes in ['1h', '1d', '1w', '1m']:
+if options.lifetime in ['1h', '1d', '1w', '1m']:
     expire = options.lifetime
-else:
-    parser.error('Unknown lifetime')
 
 class ProgressMeter(object):
     def __init__(self, microseconds=1000000):
@@ -80,7 +77,7 @@ class ProgressMeter(object):
 half_a_second = 500000
 
 postdata = {
-    'uploaded': upload_file,
+    'file': upload_file,
     'username': config.get('settings', 'username'),
     'password': config.get('settings', 'password'),
     'filename': filename,
