@@ -35,7 +35,7 @@ def upload_file():
             return 'Illigal password'
 
         # connect to sqlite and check if user exists
-        conn = sqlite3.connect('/Users/jhaals/db.database')
+        conn = sqlite3.connect(app.config['DATABASE'])
         c = conn.cursor()
         c.execute("select user_id from users where username='%s' and password='%s'" % (username, password))
         result = c.fetchone()
