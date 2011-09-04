@@ -10,6 +10,8 @@ import ConfigParser as configparser
 from flask import Flask, request, redirect, url_for
 from werkzeug import secure_filename
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from datetime import datetime
 
 config = configparser.RawConfigParser()
 if not config.read([os.path.expanduser('~/.ppupload.conf') or 'ppupload.conf', '/etc/ppupload.conf']):
@@ -37,15 +39,27 @@ def upload_file():
         # connect to sqlite and check if user exists
         conn = sqlite3.connect(app.config['DATABASE'])
         c = conn.cursor()
+        # We should add some salt here.
         c.execute("select user_id from users where username='%s' and password='%s'" % (username, password))
         result = c.fetchone()
-        if result != None:
-            # everything ok!
-            userid = result[0]
-        else:
+
+        if result == None:
             return 'Unknown user'
 
-        expire = '0'
+        userid = result[0]
+
+        allowed_expires = {
+            '1h': datetime.now() + relativedelta(hours=1),
+            '1d': datetime.now() + relativedelta(days=1),
+            '1w': datetime.now() + relativedelta(weeks=1),
+            '1m': datetime.now() + relativedelta(months=1),
+        }
+
+        if request.form['expire'] in allowed_expires:
+            expire = allowed_expires[request.form['expire']].strftime('%Y%m%d%H%M')
+        else:
+            expire = '0'
+
         one_time_download = '0'
 
         # Generate download hash
@@ -78,6 +92,27 @@ def upload_file():
     </form>
     '''
 
+@app.route('/download', methods=['GET'])
+def download_file():
+
+    download_hash = request.args.get('u')
+
+    if re.search('[^A-Za-z0-9_]', download_hash):
+        return 'invalid download hash'
+
+    # connect to sqlite and check if file exists
+    conn = sqlite3.connect(app.config['DATABASE'])
+    c = conn.cursor()
+    c.execute("select expire, one_time_download from files where hash='%s' limit 1" % download_hash)
+    result = c.fetchone()
+
+    # No result from query
+    if result == None:
+        return 'Unknown download hash'
+    
+    # Everything is OK, serve file [how... train wifi == no documentation]
+    return result[0]
+    
 if __name__ == "__main__":
     app.run(debug=True)
 
