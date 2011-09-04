@@ -19,29 +19,35 @@ if not config.read([os.path.expanduser('~/.ppupload.conf') or 'ppupload.conf', '
 
 usage = 'usage: %prog -h'
 parser = OptionParser(usage, version="%prog 0.1")
-parser.add_option("--file", "-f", help='Specify file to upload')
 parser.add_option("--onetime", "-1", help='One time download(optional)', default=False, action='store_true')
 parser.add_option("--lifetime", "-l", help='Lifetime(optional): 1h, 1d, 1w, 1m (hour/day/week/month). Default lifetime is unlimited')
 parser.add_option("--password", "-p", help='Download password(optional)')
 
 (options, args) = parser.parse_args()
 
-if not options.file:
-    parser.error('Specify --file')
-elif not os.path.isfile(options.file):
+
+# file validation
+# TODO
+#   Add support for multiple files
+try:
+    content = args[0]
+except IndexError:
+    parser.error('Specify file to upload')
+if not os.path.isfile(content):
     sys.exit('File does not exist')
 else:
     try:
-        upload_file = open(options.file, 'rb')
+        upload_file = open(content, 'rb')
     except IOError:
-        sys.exit('Could not open %s') % options.file
-    filename = os.path.basename(options.file)
+        sys.exit('Could not open %s') % content
+    filename = os.path.basename(content)
 
 if options.onetime:
     one_time_download = '1'
 else:
     one_time_download = '0'
 
+# Hash download password in case we want some extra security
 if options.password:
     download_password = hashlib.md5(options.password).hexdigest()
 else:
@@ -76,6 +82,7 @@ class ProgressMeter(object):
 
 half_a_second = 500000
 
+# combine all data before posting
 postdata = {
     'file': upload_file,
     'username': config.get('settings', 'username'),
