@@ -7,7 +7,7 @@ import hashlib
 import sqlite3
 import re
 import ConfigParser as configparser
-from flask import Flask, request, redirect, url_for
+from flask import Flask, request, redirect, url_for, send_from_directory
 from werkzeug import secure_filename
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -105,15 +105,17 @@ def download_file():
     # connect to sqlite and check if file exists
     conn = sqlite3.connect(app.config['DATABASE'])
     c = conn.cursor()
-    c.execute("select expire, one_time_download from files where hash='%s' limit 1" % download_hash)
+    c.execute("select expire, one_time_download, filename from files where hash='%s' limit 1" % download_hash)
     result = c.fetchone()
 
     # No result from query
     if result == None:
         return 'Unknown download hash'
     
-    # Everything is OK, serve file [how... train wifi == no documentation]
-    return result[0]
+    # Serve file, everything is ok
+    return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'], download_hash),
+                               result[2], as_attachment=True)
+    
     
 if __name__ == "__main__":
     app.run(debug=True)
