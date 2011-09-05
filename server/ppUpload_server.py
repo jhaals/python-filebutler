@@ -7,7 +7,7 @@ import hashlib
 import sqlite3
 import re
 import ConfigParser as configparser
-from flask import Flask, request, redirect, url_for, send_from_directory
+from flask import Flask, request, send_from_directory
 from werkzeug import secure_filename
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
