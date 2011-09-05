@@ -53,29 +53,48 @@ if options.lifetime in ['1h', '1d', '1w', '1m']:
     expire = options.lifetime
 
 class ProgressMeter(object):
-    def __init__(self, microseconds=1000000):
-        self.started_at = None
-        self.timeout = microseconds
-        self.previous_length = 0
+    '''
+    Prints some data about the upload process.
+
+    It currently updates once per second with filename, the progress expressed
+    in percents, and the average transfer speed.
+    '''
+
+    def __init__(self):
+        self.started = None
+        self.previous_update = None
+        self.previous_output = ''
 
     def __call__(self, param, current, total):
-        if self.started_at is None:
-            self.started_at = datetime.now()
-        else:
-            if datetime.now() - self.started_at > timedelta(microseconds=self.timeout):
-                line = '{filename} {percent:.1%}'.format(
-                    filename = param.name,
-                    percent = current / float(total)
-                )
+        now = datetime.now()
 
-                sys.stdout.write('\b' * self.previous_length)
-                sys.stdout.write(line)
-                sys.stdout.flush()
+        # Is this the first time we're getting called?
+        if self.previous_update is None:
+            self.started = now
+            self.previous_update = self.started
 
-                self.previous_length = len(line)
-                self.started_at = datetime.now()
+        # Update once per second
+        if now - self.previous_update > timedelta(seconds=1):
+            delta = now - self.started
 
-half_a_second = 500000
+            output = '{filename} {percent:.1%} {speed:.0f} KiB/s'.format(
+                filename = param.name,
+                percent = current / float(total),
+                speed = current / float(delta.seconds) / 1024.0
+            )
+
+            sys.stdout.write('\r' + output)
+
+            # If the previous output was longer than our current, we must "pad"
+            # our output with spaces to prevent characters from the old output
+            # to show up.
+            output_delta = len(self.previous_output) - len(output)
+            if output_delta > 0:
+                sys.stdout.write(' ' * output_delta)
+
+            sys.stdout.flush()
+
+            self.previous_update = now
 
 # combine all data before posting
 postdata = {
@@ -87,8 +106,9 @@ postdata = {
     'one_time_download': one_time_download,
     'expire': expire
 }
+
 datagen, headers = multipart_encode(postdata,
-    cb = ProgressMeter(half_a_second)
+    cb = ProgressMeter()
 )
 
 r = requests.post(config.get('settings', 'upload_url'), data=datagen, headers=headers)
