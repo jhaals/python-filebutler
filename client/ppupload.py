@@ -1,13 +1,9 @@
 #!/usr/bin/env python
-# Copyright (c) 2011, Johan Haals <johan.haals@gmail.com>
-# All rights reserved.
 
 import os
 import sys
 import ConfigParser as configparser
 import requests
-from os.path import join
-from datetime import datetime
 from optparse import OptionParser
 from poster.encode import multipart_encode
 from datetime import datetime, timedelta
