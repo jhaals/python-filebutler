@@ -61,6 +61,8 @@ def upload_file():
             expire = '0'
 
         one_time_download = '0'
+        if request.form['one_time_download'] == '1':
+            one_time_download = '1'
 
         # Generate download hash
         filename = secure_filename(request.form['filename'])
