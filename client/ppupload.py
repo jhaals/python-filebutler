@@ -14,9 +14,9 @@ if not config.read([os.path.expanduser('~/.ppupload.conf') or 'ppupload.conf', '
 
 usage = 'usage: %prog -h'
 parser = OptionParser(usage, version="%prog 0.1")
-parser.add_option("--onetime", "-1", help='One time download(optional)', default=False, action='store_true')
-parser.add_option("--lifetime", "-l", help='Lifetime(optional): 1h, 1d, 1w, 1m (hour/day/week/month). Default lifetime is unlimited')
-parser.add_option("--password", "-p", help='Download password(optional)')
+parser.add_option("--onetime", "-1", help='One time download', default=False, action='store_true')
+parser.add_option("--lifetime", "-l", help='Lifetime: 1h, 1d, 1w, 1m (hour/day/week/month). Default lifetime is unlimited')
+parser.add_option("--password", "-p", help='Download password')
 
 (options, args) = parser.parse_args()
 
