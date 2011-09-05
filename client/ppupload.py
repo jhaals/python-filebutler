@@ -34,7 +34,7 @@ else:
     try:
         upload_file = open(content, 'rb')
     except IOError:
-        sys.exit('Could not open %s') % content
+        sys.exit('Could not open %s' % content)
     filename = os.path.basename(content)
 
 if options.onetime:
