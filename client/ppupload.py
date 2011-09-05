@@ -2,7 +2,6 @@
 # Copyright (c) 2011, Johan Haals <johan.haals@gmail.com>
 # All rights reserved.
 
-import hashlib
 import os
 import sys
 import ConfigParser as configparser
@@ -49,7 +48,7 @@ else:
 
 # Hash download password in case we want some extra security
 if options.password:
-    download_password = hashlib.md5(options.password).hexdigest()
+    download_password = options.password
 else:
     download_password = ''
 
