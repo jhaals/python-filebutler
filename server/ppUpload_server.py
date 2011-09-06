@@ -66,7 +66,7 @@ def upload_file():
 
         # Generate download hash
         filename = secure_filename(request.form['filename'])
-        download_hash = hashlib.md5(filename+datetime.now().strftime('%f')).hexdigest()
+        download_hash = hashlib.sha1(filename+datetime.now().strftime('%f')).hexdigest()
 
         # Create a directory based on download_hash and save uploaded file to that folder
         try:
