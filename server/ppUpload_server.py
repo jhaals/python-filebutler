@@ -89,7 +89,7 @@ def upload_file():
     #   web interface...
     return 'Only POSTING allowed'
 
-@app.route('/download', methods=['GET'])
+@app.route('/download', methods=['GET', 'POST'])
 def download_file():
 
     download_hash = request.args.get('u')
@@ -100,14 +100,31 @@ def download_file():
     # connect to sqlite and check if file exists
     conn = sqlite3.connect(app.config['DATABASE'])
     c = conn.cursor()
-    c.execute("select expire, one_time_download, filename from files where hash='%s' limit 1" % download_hash)
+    c.execute("select expire, one_time_download, filename, download_password from files where hash='%s' limit 1" % download_hash)
 
     try:
-        expire, one_time_download, filename = c.fetchone()
+        expire, one_time_download, filename, download_password = c.fetchone()
     except TypeError:
         # No result from query
         return 'Unknown download hash'
-    
+
+    if download_password:
+        # This file is password protected.
+        if request.method == 'POST':
+            # Validate download_password from database with user input
+            pw = Password(config.get('settings', 'secret_key'))
+            if not pw.validate(download_password,request.form['password']):
+                return 'Invalid password'
+        else:
+            return '''
+            <!doctype html>
+            <title>Download file</title>
+            <h1>Upload new File</h1>
+            <form action="" method="post">
+            <p><input type="password" name="password">
+            <input type="submit" value="Download">
+            </form>
+            '''
     # Serve file, everything is ok
     return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'], download_hash),
                                filename, as_attachment=True)
