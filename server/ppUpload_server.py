@@ -36,7 +36,7 @@ def upload_file():
         # connect to sqlite and check if user exists
         conn = sqlite3.connect(app.config['DATABASE'])
         c = conn.cursor()
-        c.execute("select id, password from users where username='%s'" % (username))
+        c.execute("select id, password from users where username=?", (username,))
         
         try:
             user_id, password_hash = c.fetchone()
@@ -77,8 +77,9 @@ def upload_file():
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], download_hash, filename))
 
         # save info to database
+        insert_data = (download_hash, user_id, filename, expire, one_time_download, download_password,)
         c.execute("""insert into files (hash, user_id, filename, expire, one_time_download, download_password)
-          values ('%s','%s','%s','%s', '%s', '%s')""" % (download_hash, user_id, filename, expire, one_time_download, download_password)) 
+          values (?,?,?,?,?,?)""", insert_data)
         conn.commit()
         c.close()
 
@@ -100,7 +101,7 @@ def download_file():
     # connect to sqlite and check if file exists
     conn = sqlite3.connect(app.config['DATABASE'])
     c = conn.cursor()
-    c.execute("select expire, one_time_download, filename, download_password from files where hash='%s' limit 1" % download_hash)
+    c.execute("select expire, one_time_download, filename, download_password from files where hash=? limit 1", (download_hash,))
 
     try:
         expire, one_time_download, filename, download_password = c.fetchone()
