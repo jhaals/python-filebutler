@@ -95,6 +95,9 @@ def download_file():
 
     download_hash = request.args.get('u')
 
+    if not download_hash:
+        return 'No download hash specified'
+
     if re.search('[^A-Za-z0-9_]', download_hash):
         return 'invalid download hash'
 
