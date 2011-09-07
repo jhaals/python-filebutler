@@ -35,7 +35,6 @@ else:
         upload_file = open(content, 'rb')
     except IOError:
         sys.exit('Could not open %s' % content)
-    filename = os.path.basename(content)
 
 if options.onetime:
     one_time_download = '1'
@@ -101,7 +100,6 @@ postdata = {
     'file': upload_file,
     'username': config.get('settings', 'username'),
     'password': config.get('settings', 'password'),
-    'filename': filename,
     'download_password': download_password,
     'one_time_download': one_time_download,
     'expire': expire
