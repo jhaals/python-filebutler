@@ -86,7 +86,7 @@ def upload_file():
         c.close()
 
         # everything ok, return download url to client
-        return download_hash
+        return config.get('settings', 'url')+download_hash
 
     # TODO
     #   web interface...
@@ -134,8 +134,7 @@ def download_file():
     # Serve file, everything is ok
     return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'], download_hash),
                                filename, as_attachment=True)
-    
-    
+
 if __name__ == "__main__":
     app.run(debug=True)
 
