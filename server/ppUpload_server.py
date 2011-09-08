@@ -114,6 +114,20 @@ def download_file():
         # No result from query
         return 'Unknown download hash'
 
+    # Check expire date (if any)
+    if expire:
+        expire = datetime.strptime(expire, '%Y%m%d%H%M')
+        if datetime.now() > expire:
+            # Download has expired, remove file and database entry
+            # TODO
+            #   create a function since this will be used if one_time_download is set to 1 
+            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], download_hash, filename))
+            os.removedirs(os.path.join(app.config['UPLOAD_FOLDER'], download_hash))
+            c.execute("delete from files where hash=?", (download_hash,))
+            conn.commit()
+            c.close()
+            return 'This download has expired'
+
     if download_password:
         # This file is password protected.
         if request.method == 'POST':
