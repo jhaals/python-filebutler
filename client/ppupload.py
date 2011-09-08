@@ -7,6 +7,7 @@ import requests
 from optparse import OptionParser
 from poster.encode import multipart_encode
 from datetime import datetime, timedelta
+from clipboard import Clipboard
 
 config = configparser.RawConfigParser()
 if not config.read([os.path.expanduser('~/.ppupload.conf') or 'ppupload.conf', '/etc/ppupload.conf']):
@@ -110,10 +111,11 @@ datagen, headers = multipart_encode(postdata,
 )
 
 r = requests.post(config.get('settings', 'upload_url'), data=datagen, headers=headers)
-print r.content
-# parse results from server....
 
-#    download_url = config.get('remote', 'url')+download_hash
-#    if sys.platform == 'darwin':
-#        os.system('echo %s | pbcopy' % download_url)
-#    print download_url
+# copy result to clipboard
+# TODO
+#   this should really be parsed and no text should be copied if r.content contains anything else then a http address.
+copy = Clipboard()
+copy.set(r.content)
+
+print r.content
