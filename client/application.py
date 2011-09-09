@@ -9,7 +9,7 @@ from poster.encode import multipart_encode
 import requests
 
 # Local
-from clipboard import Clipboard
+import clipboard
 from utils import ProgressMeter
 
 
