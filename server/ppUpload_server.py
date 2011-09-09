@@ -1,16 +1,19 @@
 #!/usr/bin/env python
-# Copyright (c) 2011, Johan Haals <johan.haals@gmail.com>
-# All rights reserved.
 
+# Standard Library
 import os
 import hashlib
 import sqlite3
 import re
 import ConfigParser as configparser
+from datetime import datetime
+
+# Third party
 from flask import Flask, request, send_from_directory
 from werkzeug import secure_filename
-from datetime import datetime
 from dateutil.relativedelta import relativedelta
+
+# Local
 from datetime import datetime
 from password import Password
 
