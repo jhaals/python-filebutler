@@ -47,3 +47,6 @@ class Clipboard(object):
         'Returns True if any of the backends succeeded.'
 
         return any(backend.set(text) for backend in self.backends)
+
+def copy(text):
+    return Clipboard().set(text)
