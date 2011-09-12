@@ -76,8 +76,8 @@ def upload_file():
         # Create a directory based on download_hash and save uploaded file to that folder
         try:
             os.mkdir(os.path.join(app.config['UPLOAD_FOLDER'], download_hash))
-        except IOError:
-            return 'Could not upload file'
+        except OSError:
+            return 'Could not upload file(storage directory does not exist)'
 
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], download_hash, filename))
 
@@ -154,4 +154,3 @@ def download_file():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
