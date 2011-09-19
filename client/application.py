@@ -36,7 +36,7 @@ class Application(object):
         parser = OptionParser('usage: %prog -h', version="%prog 0.1")
 
         parser.add_option("--onetime", "-1", help='One time download', \
-            default=False)
+            default=False, action='store_true')
 
         parser.add_option("--lifetime", "-l",
             choices=('', '1h', '1d', '1w', '1m'), default='',
