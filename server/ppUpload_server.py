@@ -14,7 +14,6 @@ from werkzeug import secure_filename
 from dateutil.relativedelta import relativedelta
 
 # Local
-from datetime import datetime
 from password import Password
 
 config = configparser.RawConfigParser()
@@ -118,7 +117,7 @@ def download_file():
         return 'Unknown download hash'
 
     # Check expire date (if any)
-    if expire:
+    if expire != '0':
         expire = datetime.strptime(expire, '%Y%m%d%H%M')
         if datetime.now() > expire:
             # Download has expired, remove file and database entry
@@ -148,6 +147,13 @@ def download_file():
             <input type="submit" value="Download">
             </form>
             '''
+    if one_time_download == 1:
+        # Set expire date to current time, download will be invalid in a minute
+        insert_data = (datetime.now().strftime('%Y%m%d%H%M'), download_hash,)
+        c.execute("""UPDATE files SET expire=? WHERE  hash=?""", insert_data)
+        conn.commit()
+        c.close()
+
     # Serve file, everything is ok
     return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'], download_hash),
                                filename, as_attachment=True)
