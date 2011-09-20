@@ -5,6 +5,7 @@ import os
 import hashlib
 import sqlite3
 import re
+import sys
 import ConfigParser as configparser
 from datetime import datetime
 
