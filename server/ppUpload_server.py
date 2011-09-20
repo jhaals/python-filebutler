@@ -59,7 +59,7 @@ def upload_file():
         }
 
         if request.form['expire'] in allowed_expires:
-            expire = allowed_expires[request.form['expire']].strftime('%Y%m%d%H%M')
+            expire = allowed_expires[request.form['expire']].strftime('%Y%m%d%H%M%S')
             
         if request.form['one_time_download'] == '1':
             # TODO
@@ -119,7 +119,7 @@ def download_file():
 
     # Check expire date (if any)
     if expire != '0':
-        expire = datetime.strptime(expire, '%Y%m%d%H%M')
+        expire = datetime.strptime(expire, '%Y%m%d%H%M%S')
         if datetime.now() > expire:
             # Download has expired, remove file and database entry
             # TODO
@@ -150,7 +150,7 @@ def download_file():
             '''
     if one_time_download == 1:
         # Set expire date to current time, download will be invalid in a minute
-        insert_data = (datetime.now().strftime('%Y%m%d%H%M'), download_hash,)
+        insert_data = (datetime.now().strftime('%Y%m%d%H%M%S'), download_hash,)
         c.execute("""UPDATE files SET expire=? WHERE  hash=?""", insert_data)
         conn.commit()
         c.close()

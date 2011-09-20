@@ -21,7 +21,7 @@ c.execute("select hash, expire, one_time_download, filename, download_password f
 for entry in c.fetchall():
     download_hash, expire, one_time_download, filename, download_password = entry
 
-    expire = datetime.strptime(expire, '%Y%m%d%H%M')
+    expire = datetime.strptime(expire, '%Y%m%d%H%M%S')
     if datetime.now() > expire:
         try:
             os.remove(os.path.join(config.get('settings', 'storage_path'), download_hash, filename))
