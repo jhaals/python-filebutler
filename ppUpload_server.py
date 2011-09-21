@@ -18,7 +18,7 @@ from dateutil.relativedelta import relativedelta
 from password import Password
 
 config = configparser.RawConfigParser()
-if not config.read([os.path.expanduser('~/.ppupload.conf') or 'ppupload.conf', '/etc/ppupload.conf']):
+if not config.read([os.path.expanduser('~/.filebutler.conf') or 'filebutler.conf', '/etc/filebutler.conf']):
     sys.exit("Couldn't read configuration file")
 
 app = Flask(__name__)
@@ -160,4 +160,4 @@ def download_file():
                                filename, as_attachment=True)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=config.get('settings', 'debug'),port=int(config.get('settings', 'port')))
