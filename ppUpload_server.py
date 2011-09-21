@@ -62,8 +62,6 @@ def upload_file():
             expire = allowed_expires[request.form['expire']].strftime('%Y%m%d%H%M%S')
             
         if request.form['one_time_download'] == '1':
-            # TODO
-            # Remove file upon successful download if possible.
             one_time_download = '1'
 
         if download_password:
