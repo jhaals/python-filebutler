@@ -16,6 +16,7 @@ from dateutil.relativedelta import relativedelta
 
 # Local
 from password import Password
+from filevalidity import FileValidity
 
 config = configparser.RawConfigParser()
 if not config.read([os.path.expanduser('~/.filebutler.conf') or 'filebutler.conf', '/etc/filebutler.conf']):
@@ -115,18 +116,12 @@ def download_file():
         # No result from query
         return 'Unknown download hash'
 
-    # Check expire date (if any)
     if expire != '0':
-        expire = datetime.strptime(expire, '%Y%m%d%H%M%S')
-        if datetime.now() > expire:
-            # Download has expired, remove file and database entry
-            # TODO
-            #   create a function since this will be used if one_time_download is set to 1 
-            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], download_hash, filename))
-            os.removedirs(os.path.join(app.config['UPLOAD_FOLDER'], download_hash))
-            c.execute("delete from files where hash=?", (download_hash,))
-            conn.commit()
-            c.close()
+        # Expire date exists
+        fv = FileValidity(app.config['DATABASE'], app.config['UPLOAD_FOLDER'])
+        if fv.expired(expire):
+            # Remove expired file from storage and database
+            fv.remove_data(download_hash, filename)
             return 'This download has expired'
 
     if download_password:
@@ -136,6 +131,7 @@ def download_file():
             pw = Password(config.get('settings', 'secret_key'))
             if not pw.validate(download_password,request.form['password']):
                 return 'Invalid password'
+
         else:
             return '''
             <!doctype html>
@@ -146,6 +142,7 @@ def download_file():
             <input type="submit" value="Download">
             </form>
             '''
+
     if one_time_download == 1:
         # Set expire date to current time, download will be invalid in a minute
         insert_data = (datetime.now().strftime('%Y%m%d%H%M%S'), download_hash,)
