@@ -35,7 +35,7 @@ class FileValidity:
             if self.expired(expire_date):
                 print 'removed %s' % filename
                 self.remove_data(download_hash, filename)
-
+        return 'Done'
     def remove_data(self, download_hash, filename):
         ''' remove file from storage and database '''
 
@@ -44,6 +44,6 @@ class FileValidity:
             os.removedirs(os.path.join(self.storage_path, download_hash))
         except OSError as e:
             print 'Failed to remove file %s' % e
-        
+
         self.c.execute("delete from files where hash=?", (download_hash,))
         self.conn.commit()
