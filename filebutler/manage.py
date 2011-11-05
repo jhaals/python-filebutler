@@ -14,7 +14,7 @@ from password import Password
 from filevalidity import FileValidity
 
 config = configparser.RawConfigParser()
-if not config.read([os.path.expanduser('~/.ppupload.conf') or 'ppupload.conf', '/etc/ppupload.conf']):
+if not config.read([os.path.expanduser('~/.filebutler.conf'), 'filebutler.conf', '/etc/filebutler.conf']):
     sys.exit("Couldn't read configuration file")
 
 usage = 'usage: %prog -h'
