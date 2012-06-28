@@ -1,98 +1,90 @@
 #!/usr/bin/env python
+# Copyright (c) 2011-2012, Johan Haals <johan.haals@gmail.com>
+# All rights reserved.
 
 # Standard Library
 import os
 import hashlib
-import sqlite3
 import re
 import sys
 import ConfigParser as configparser
 from datetime import datetime
 
 # Third party
-from flask import Flask, request, send_from_directory
+from flask import Flask, request, send_from_directory, render_template
 from werkzeug import secure_filename
 from dateutil.relativedelta import relativedelta
 
 # Local
 from password import Password
-from filevalidity import FileValidity
+from fbquery import FbQuery
 
 config = configparser.RawConfigParser()
-if not config.read([os.path.expanduser('~/.filebutler.conf') or 'filebutler.conf', '/etc/filebutler.conf']):
+if not config.read('filebutler.conf'):
     sys.exit("Couldn't read configuration file")
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = config.get('settings', 'storage_path')
 app.config['DATABASE'] = config.get('settings', 'database_path')
+app.config['URL'] = config.get('settings', 'url')
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['POST'])
 def upload_file():
-    if request.method == 'POST':
+    file = request.files['file']
+    username = request.form['username']
+    password = request.form['password']
+    download_password = request.form['download_password']
+    expire = '0'
+    one_time_download = False
 
-        file = request.files['file']
-        username = request.form['username']
-        password = request.form['password']
-        download_password = request.form['download_password']
-        expire = '0'
-        one_time_download = '0'
-        
-        # connect to sqlite and check if user exists
-        conn = sqlite3.connect(app.config['DATABASE'])
-        c = conn.cursor()
-        c.execute("select id, password from users where username=?", (username,))
-        
-        try:
-            user_id, password_hash = c.fetchone()
-        except TypeError:        
-            return 'Error: Check username/password'
-        
-        pw = Password(config.get('settings', 'secret_key'))
+    fb = FbQuery()
 
-        if not pw.validate(password_hash,password):
-            return 'Invalid username/password'
-        
-        allowed_expires = {
-            '1h': datetime.now() + relativedelta(hours=1),
-            '1d': datetime.now() + relativedelta(days=1),
-            '1w': datetime.now() + relativedelta(weeks=1),
-            '1m': datetime.now() + relativedelta(months=1),
+    if not fb.user_exist(username):
+        return 'Could not find user'
+
+    u = fb.user_get(username)
+    pw = Password(config.get('settings', 'secret_key'))
+
+    if not pw.validate(u.password, password):
+        return 'Invalid username/password'
+
+    allowed_expires = {
+        '1h': datetime.now() + relativedelta(hours=1),
+        '1d': datetime.now() + relativedelta(days=1),
+        '1w': datetime.now() + relativedelta(weeks=1),
+        '1m': datetime.now() + relativedelta(months=1),
         }
 
-        if request.form['expire'] in allowed_expires:
-            expire = allowed_expires[request.form['expire']].strftime('%Y%m%d%H%M%S')
-            
-        if request.form['one_time_download'] == '1':
-            one_time_download = '1'
+    if request.form['expire'] in allowed_expires:
+        expire = allowed_expires[request.form['expire']].strftime('%Y%m%d%H%M%S')
 
-        if download_password:
-            download_password = pw.generate(download_password)
+    if request.form['one_time_download'] == '1':
+        one_time_download = True
 
-        # Generate download hash
-        filename = secure_filename(os.path.basename(file.filename))
-        download_hash = hashlib.sha1(filename+datetime.now().strftime('%f')).hexdigest()
+    if download_password:
+        download_password = pw.generate(download_password)
 
-        # Create a directory based on download_hash and save uploaded file to that folder
-        try:
-            os.mkdir(os.path.join(app.config['UPLOAD_FOLDER'], download_hash))
-        except OSError:
-            return 'Could not upload file(storage directory does not exist)'
+    # Generate download hash
+    filename = secure_filename(os.path.basename(file.filename))
+    download_hash = hashlib.sha1(
+        filename + datetime.now().strftime('%f')).hexdigest()
 
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], download_hash, filename))
+    # Create a directory based on hash and save file to that folder
+    try:
+        os.mkdir(os.path.join(app.config['UPLOAD_FOLDER'], download_hash))
+    except OSError:
+        return 'Could not upload file(storage directory does not exist)'
 
-        # save info to database
-        insert_data = (download_hash, user_id, filename, expire, one_time_download, download_password,)
-        c.execute("""insert into files (hash, user_id, filename, expire, one_time_download, download_password)
-          values (?,?,?,?,?,?)""", insert_data)
-        conn.commit()
-        c.close()
+    file.save(os.path.join(app.config['UPLOAD_FOLDER'],
+        download_hash,
+        filename))
 
-        # everything ok, return download url to client
-        return config.get('settings', 'url')+download_hash
+    fb.file_add(download_hash, u.id, filename, expire,
+        one_time_download, download_password)
 
-    # TODO
-    #   web interface...
-    return 'Only POSTING allowed'
+    # everything ok, return download url to client
+    return ''.join([app.config['URL'],'/download?u=', download_hash])
+
 
 @app.route('/download', methods=['GET', 'POST'])
 def download_file():
@@ -105,54 +97,41 @@ def download_file():
     if re.search('[^A-Za-z0-9_]', download_hash):
         return 'invalid download hash'
 
-    # connect to sqlite and check if file exists
-    conn = sqlite3.connect(app.config['DATABASE'])
-    c = conn.cursor()
-    c.execute("select expire, one_time_download, filename, download_password from files where hash=? limit 1", (download_hash,))
+    fb = FbQuery()
+    # fetch file
+    f = fb.file_get(download_hash)
 
-    try:
-        expire, one_time_download, filename, download_password = c.fetchone()
-    except TypeError:
-        # No result from query
-        return 'Unknown download hash'
+    if not f:
+        return 'Could not find file'
 
-    if expire != '0':
+    if f.expire != '0':
         # Expire date exists
-        fv = FileValidity(app.config['DATABASE'], app.config['UPLOAD_FOLDER'])
-        if fv.expired(expire):
+        if fb.file_expired(f.expire):
             # Remove expired file from storage and database
-            fv.remove_data(download_hash, filename)
+            fb.file_remove(download_hash, f.filename)
             return 'This download has expired'
 
-    if download_password:
+    if f.download_password:
         # This file is password protected.
         if request.method == 'POST':
             # Validate download_password from database with user input
             pw = Password(config.get('settings', 'secret_key'))
-            if not pw.validate(download_password,request.form['password']):
-                return 'Invalid password'
+            if not pw.validate(f.download_password, request.form['password']):
+                return render_template('download.html', error='Invalid Password')
 
         else:
-            return '''
-            <!doctype html>
-            <title>Download file</title>
-            <h1>Upload new File</h1>
-            <form action="" method="post">
-            <p><input type="password" name="password">
-            <input type="submit" value="Download">
-            </form>
-            '''
+            return render_template('download.html', error=None)
 
-    if one_time_download == 1:
+    if f.one_time_download == 1:
         # Set expire date to current time, download will be invalid in a minute
-        insert_data = (datetime.now().strftime('%Y%m%d%H%M%S'), download_hash,)
-        c.execute("""UPDATE files SET expire=? WHERE  hash=?""", insert_data)
-        conn.commit()
-        c.close()
+        fb.file_set_expiry(download_hash, datetime.now().strftime('%Y%m%d%H%M%S'))
 
     # Serve file, everything is ok
-    return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'], download_hash),
-                               filename, as_attachment=True)
+    return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'],
+        download_hash),
+        f.filename,
+        as_attachment=True)
 
 if __name__ == "__main__":
-    app.run(debug=config.get('settings', 'debug'),port=int(config.get('settings', 'port')))
+    app.run(debug=config.get('settings', 'debug'),
+            port=int(config.get('settings', 'port')))

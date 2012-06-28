@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-# Copyright (c) 2011, Johan Haals <johan.haals@gmail.com>
+# Copyright (c) 2011-2012, Johan Haals <johan.haals@gmail.com>
 # All rights reserved.
 
 import hmac
 import hashlib
 
 class Password:
-    
+
     # TODO
     #   Support for multiple hash algorithms
 
@@ -27,7 +27,7 @@ class Password:
         return 'sha1:%s:%s' % (hmac_hash, salt)
 
     def validate(self, hash, password):
-        ''' split hash and extract it's salt. Create new hash for password using salt and our secret_key. If both hashes match return true ''' 
+        ''' split hash and extract it's salt. Create new hash for password using salt and our secret_key. If both hashes match return true '''
         try:
             algorithm, hash, salt = hash.split(':')
         except ValueError:
