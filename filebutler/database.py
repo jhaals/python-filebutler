@@ -10,13 +10,9 @@ config = configparser.RawConfigParser()
 if not config.read('filebutler.conf'):
         sys.exit("Couldn't read configuration file")
 
-db = peewee.SqliteDatabase(config.get('settings', 'database_path'))
-
-
 class CustomModel(peewee.Model):
     class Meta:
-        database = db
-
+        database = peewee.SqliteDatabase(config.get('settings', 'database_path'), threadlocals=True)
 
 class User(CustomModel):
     username = peewee.CharField()
