@@ -7,7 +7,7 @@ import ConfigParser as configparser
 import sys
 
 config = configparser.RawConfigParser()
-if not config.read('filebutler.conf'):
+if not config.read('/etc/filebutler.conf'):
         sys.exit("Couldn't read configuration file")
 
 class CustomModel(peewee.Model):

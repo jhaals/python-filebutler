@@ -14,7 +14,7 @@ class FbQuery:
 
     def __init__(self):
         config = configparser.RawConfigParser()
-        if not config.read('filebutler.conf'):
+        if not config.read('/etc/filebutler.conf'):
             sys.exit("Couldn't read configuration file")
 
         self.secret_key = config.get('settings', 'secret_key')
