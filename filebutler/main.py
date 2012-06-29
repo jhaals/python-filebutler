@@ -29,12 +29,14 @@ app.config['DATABASE'] = config.get('settings', 'database_path')
 app.config['URL'] = config.get('settings', 'url')
 
 
-def json_response(message, status_code):
+def response(request, message, status_code):
     # Convert return message to json, add status_code
-    response = jsonify(message=message)
-    response.status_code = status_code
-    return response
+    if 'application/json' in request.headers['Accept']:
+        response = jsonify(message=message)
+        response.status_code = status_code
+        return response
 
+    return render_template('message.html', message=message), status_code
 
 @app.route('/', methods=['POST'])
 def upload_file():
@@ -48,13 +50,13 @@ def upload_file():
     fb = FbQuery()
 
     if not fb.user_exist(username):
-        return json_response('Could not find user', 401)
+        return response(request, 'Could not find user', 401)
 
     u = fb.user_get(username)
     pw = Password(config.get('settings', 'secret_key'))
 
     if not pw.validate(u.password, password):
-        return json_response('Invalid username/password', 401)
+        return response('Invalid username/password', 401)
 
     allowed_expires = {
         '1h': datetime.now() + relativedelta(hours=1),
@@ -81,7 +83,7 @@ def upload_file():
     try:
         os.mkdir(os.path.join(app.config['UPLOAD_FOLDER'], download_hash))
     except OSError:
-        return json_response(
+        return response(
                 'Could not upload file(storage directory does not exist)', 500)
 
     file.save(os.path.join(app.config['UPLOAD_FOLDER'],
@@ -92,7 +94,7 @@ def upload_file():
         one_time_download, download_password)
 
     # everything ok, return download url to client
-    return json_response(
+    return response(request,
             ''.join([app.config['URL'], '/download?u=', download_hash]), 200)
 
 
@@ -102,24 +104,24 @@ def download_file():
     download_hash = request.args.get('u')
 
     if not download_hash:
-        return 'No download hash specified'
+        return response(request, 'No download hash specified', 400)
 
     if re.search('[^A-Za-z0-9_]', download_hash):
-        return 'invalid download hash'
+        return response(request, 'invalid download hash', 400)
 
     fb = FbQuery()
     # fetch file
     f = fb.file_get(download_hash)
 
     if not f:
-        return 'Could not find file'
+        return response(request, 'Could not find file', 404)
 
     if f.expire != '0':
         # Expire date exists
         if fb.file_expired(f.expire):
             # Remove expired file from storage and database
             fb.file_remove(download_hash, f.filename)
-            return 'This download has expired'
+            return response(request, 'This download has expired', 410)
 
     if f.download_password:
         # This file is password protected.
@@ -133,7 +135,7 @@ def download_file():
         else:
             return render_template('download.html', error=None)
 
-    if f.one_time_download == 1:
+    if f.one_time_download:
         # Set expire date to current time, download will be invalid in a minute
         fb.file_set_expiry(download_hash,
                 datetime.now().strftime('%Y%m%d%H%M%S'))
@@ -142,7 +144,7 @@ def download_file():
     return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'],
         download_hash),
         f.filename,
-        as_attachment=True)
+        as_attachment=True, cache_timeout=0)
 
 if __name__ == "__main__":
     app.run(debug=config.get('settings', 'debug'),
