@@ -14,15 +14,15 @@ class Password:
         self.secret_key = secret_key
 
     def random(self, chars):
-        ''' returns a random hex string based on the output of /dev/random '''
-        f = open('/dev/random', 'rb')
+        ''' returns a random hex string based on the output of /dev/urandom '''
+        f = open('/dev/urandom', 'rb')
 
         return f.read(chars).encode('hex')
 
     def generate(self, password):
         ''' Encrypt password using our secure_key and a random salt from random(). return sha1:hmachash:salt '''
         salt = self.random(225)
-        hmac_hash = hmac.new(self.secret_key,password+salt, hashlib.sha1).hexdigest()
+        hmac_hash = hmac.new(self.secret_key,password + salt, hashlib.sha1).hexdigest()
 
         return 'sha1:%s:%s' % (hmac_hash, salt)
 
@@ -35,7 +35,7 @@ class Password:
             raise ValueError('Invalid password string syntax')
 
         # encrypt password with extracted salt from hash
-        self.password_hash = hmac.new(self.secret_key,password+salt, hashlib.sha1).hexdigest()
+        self.password_hash = hmac.new(self.secret_key, password + salt, hashlib.sha1).hexdigest()
 
         if self.password_hash != hash:
             return False
