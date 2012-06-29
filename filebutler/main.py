@@ -11,7 +11,7 @@ import ConfigParser as configparser
 from datetime import datetime
 
 # Third party
-from flask import Flask, request, send_from_directory, render_template
+from flask import Flask, request, send_from_directory, render_template, jsonify
 from werkzeug import secure_filename
 from dateutil.relativedelta import relativedelta
 
@@ -28,6 +28,14 @@ app.config['UPLOAD_FOLDER'] = config.get('settings', 'storage_path')
 app.config['DATABASE'] = config.get('settings', 'database_path')
 app.config['URL'] = config.get('settings', 'url')
 
+
+def json_response(message, status_code):
+    # Convert return message to json, add status_code
+    response = jsonify(message=message)
+    response.status_code = status_code
+    return response
+
+
 @app.route('/', methods=['POST'])
 def upload_file():
     file = request.files['file']
@@ -40,13 +48,13 @@ def upload_file():
     fb = FbQuery()
 
     if not fb.user_exist(username):
-        return 'Could not find user'
+        return json_response('Could not find user', 401)
 
     u = fb.user_get(username)
     pw = Password(config.get('settings', 'secret_key'))
 
     if not pw.validate(u.password, password):
-        return 'Invalid username/password'
+        return json_response('Invalid username/password', 401)
 
     allowed_expires = {
         '1h': datetime.now() + relativedelta(hours=1),
@@ -73,7 +81,8 @@ def upload_file():
     try:
         os.mkdir(os.path.join(app.config['UPLOAD_FOLDER'], download_hash))
     except OSError:
-        return 'Could not upload file(storage directory does not exist)'
+        return json_response(
+                'Could not upload file(storage directory does not exist)', 500)
 
     file.save(os.path.join(app.config['UPLOAD_FOLDER'],
         download_hash,
@@ -83,7 +92,8 @@ def upload_file():
         one_time_download, download_password)
 
     # everything ok, return download url to client
-    return ''.join([app.config['URL'],'/download?u=', download_hash])
+    return json_response(
+            ''.join([app.config['URL'], '/download?u=', download_hash]), 200)
 
 
 @app.route('/download', methods=['GET', 'POST'])
@@ -117,14 +127,16 @@ def download_file():
             # Validate download_password from database with user input
             pw = Password(config.get('settings', 'secret_key'))
             if not pw.validate(f.download_password, request.form['password']):
-                return render_template('download.html', error='Invalid Password')
+                return render_template('download.html',
+                        error='Invalid Password')
 
         else:
             return render_template('download.html', error=None)
 
     if f.one_time_download == 1:
         # Set expire date to current time, download will be invalid in a minute
-        fb.file_set_expiry(download_hash, datetime.now().strftime('%Y%m%d%H%M%S'))
+        fb.file_set_expiry(download_hash,
+                datetime.now().strftime('%Y%m%d%H%M%S'))
 
     # Serve file, everything is ok
     return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'],
