@@ -4,46 +4,38 @@
 
 # Standard library
 import getpass
-from optparse import OptionParser
+from argparse import ArgumentParser
 
 # Local
 from fbquery import FbQuery
 
-usage = 'usage: %prog -h'
-parser = OptionParser(usage)
-parser.add_option('--user', '-u', help='Username', default=False)
-parser.add_option('--add-user',
-    '-a', help='Add new user', action='store_true', default=False)
-parser.add_option('--delete-user',
-    '-d', help='Delete user', action='store_true', default=False)
-parser.add_option('--change-password',
-        help='change user password', action='store_true', default=False)
-parser.add_option('--delete-expired-data',
-        help='Delete all expired data from database',
-        default=False, action='store_true')
+parser = ArgumentParser(usage='%(prog)s -h')
+group = parser.add_mutually_exclusive_group(required=True)
+group.add_argument('--add-user',
+    metavar='<username>', help='Adds a new user')
 
-options, args = parser.parse_args()
+group.add_argument('--delete-user',
+    metavar='<username>', help='Deletes an existing user')
 
+group.add_argument('--change-password',
+    metavar='<username>', help='Change password of an existing user')
+
+group.add_argument('--delete-expired-data',
+    action='store_true', help='Delete expired data from database')
+
+options = parser.parse_args()
 fb = FbQuery()
 
 if options.add_user:
-    if options.user:
-        password = getpass.getpass('Password: ')
-        print fb.user_create(options.user, password)
-    else:
-        parser.error('Please specify username')
+    password = getpass.getpass('Password:')
+    print fb.user_create(options.add_user, password)
 
 if options.delete_user:
-    if options.user:
-        print fb.user_delete(options.user)
-    else:
-        parser.error('Please specify username')
+    print fb.user_delete(options.delete_user)
 
 if options.change_password:
-    if options.user:
-        password = getpass.getpass('New password: ')
-        print fb.user_change_password(options.user, password)
-    else:
-        parser.error('Please specify username')
+    password = getpass.getpass('New password: ')
+    print fb.user_change_password(options.change_password, password)
+
 if options.delete_expired_data:
     fb.file_remove_expired()
