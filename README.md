@@ -4,7 +4,7 @@ python-filebutler
 filebutler is a small web app based on flask that allows you to upload(post) files over http/https and get a sha1 link in return.
 filebutler uses sqlite as backend to keep track of files.
 
-I suggest you use python-filebutler together with [ppUpload](http://github.com/jhaals/ppUpload "ppUpload").
+I suggest that you use python-filebutler together with [filebutler-upload](http://github.com/jhaals/filebutler-upload "filebutler-upload") or write your own upload app.
 
 Features
 ---------

@@ -56,7 +56,7 @@ def upload_file():
     pw = Password(config.get('settings', 'secret_key'))
 
     if not pw.validate(u.password, password):
-        return response('Invalid username/password', 401)
+        return response(request, 'Invalid username/password', 401)
 
     allowed_expires = {
         '1h': datetime.now() + relativedelta(hours=1),
