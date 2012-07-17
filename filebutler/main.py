@@ -8,6 +8,7 @@ import hashlib
 import re
 import sys
 import ConfigParser as configparser
+from mimetypes import guess_type
 from datetime import datetime
 
 # Third party
@@ -140,11 +141,17 @@ def download_file():
         fb.file_set_expiry(download_hash,
                 datetime.now().strftime('%Y%m%d%H%M%S'))
 
+    # Serve images in browser
+    type = guess_type(os.path.join(app.config['UPLOAD_FOLDER'], download_hash, f.filename))[0]
+    attachment = True
+    if 'image' in type:
+        attachment = False
+
     # Serve file, everything is ok
     return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'],
         download_hash),
         f.filename,
-        as_attachment=True, cache_timeout=0)
+        as_attachment=attachment, cache_timeout=0)
 
 if __name__ == "__main__":
     app.run(debug=config.get('settings', 'debug'),
