@@ -52,7 +52,10 @@ class FbQuery:
 
     def user_get(self, user):
         """ Get all userdata from database """
-        return User.get(username=user)
+        try:
+            return User.get(username=user)
+        except User.DoesNotExist:
+            return None
 
     def user_create(self, user, password):
         """ Create new user """
@@ -87,17 +90,16 @@ class FbQuery:
 
     def file_add(self, download_hash, user_id, filename, expire,
             one_time_download, download_password):
+        ''' Add file information to database. '''
         f = File(hash=download_hash, user=user_id, filename=filename,
                 expire=expire, one_time_download=one_time_download,
                 download_password=download_password)
         f.save()
-        # Todo: Make sure it works
         return True
 
     def file_set_expiry(self, download_hash, date):
         uq = File.update(expire=date).where(hash=download_hash)
         uq.execute()
-        # Todo: make sure it works
         return True
 
     def file_expired(expire, expire_date):
@@ -131,3 +133,18 @@ class FbQuery:
                 print 'removed %s' % e.filename
                 self.file_remove(e.hash, e.filename)
         return True
+
+    def files_list(self, user):
+        ''' return a dict with all files for user '''
+        user = self.user_get(user)
+        files = {}
+        if not user:
+            return None
+
+        sq = File.select().where(user_id=user.id)
+        # add to dict
+        for e in sq.execute():
+            files[e.hash] = e.filename
+
+        return files
+    
