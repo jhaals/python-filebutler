@@ -84,7 +84,7 @@ def upload_file():
     try:
         os.mkdir(os.path.join(app.config['UPLOAD_FOLDER'], download_hash))
     except OSError:
-        return response(
+        return response(request,
                 'Could not upload file(storage directory does not exist)', 500)
 
     file.save(os.path.join(app.config['UPLOAD_FOLDER'],
