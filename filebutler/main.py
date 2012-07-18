@@ -39,9 +39,18 @@ def response(request, message, status_code):
 
     return render_template('message.html', message=message), status_code
 
-@app.route('/', methods=['POST'])
+
+@app.route('/', methods=['POST', 'GET'])
 def upload_file():
+
+    if request.method == 'GET':
+        return render_template('upload.html')
+
     file = request.files['file']
+
+    if not file.filename:
+        return response(request, 'No file selected', 400)
+
     username = request.form['username']
     password = request.form['password']
     download_password = request.form['download_password']
