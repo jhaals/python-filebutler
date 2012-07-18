@@ -4,7 +4,7 @@ python:
 install:
   - pip install -r requirements.txt --use-mirrors
 # command to run tests
-script: ./filebutler/manage.py --delete-expired-data
 
 notifications:
+    email: false
     irc: "irc.freenode.org#kurbitz"
