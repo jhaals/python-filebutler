@@ -144,7 +144,7 @@ def download_file():
     # Serve images in browser
     type = guess_type(os.path.join(app.config['UPLOAD_FOLDER'], download_hash, f.filename))[0]
     attachment = True
-    if 'image' in type:
+    if type and 'image' in type:
         attachment = False
 
     # Serve file, everything is ok
