@@ -41,17 +41,12 @@ def response(request, message, status_code):
     return render_template('message.html', message=message), status_code
 
 
-def valid_user(fb, username, password):
+def authenticate(fb, pw, username, password):
 
-    u = fb.user_get(username)
-    if u is None:
-        return False
-
-    pw = Password(config.get('settings', 'secret_key'))
-
-    if not pw.validate(u.password, password):
-        return False
-    return True
+    user = fb.user_get(username)
+    if not user or not pw.validate(user.password, password):
+        return None
+    return user
 
 
 @app.route('/', methods=['POST', 'GET'])
@@ -72,8 +67,10 @@ def upload_file():
     one_time_download = False
 
     fb = FbQuery()
+    pw = Password(config.get('settings', 'secret_key'))
 
-    if not valid_user(fb, username, password):
+    user = authenticate(fb, pw, username, password)
+    if not user:
         return response(request, 'Invalid username or password', 401)
 
     allowed_expires = {
@@ -108,7 +105,7 @@ def upload_file():
         download_hash,
         filename))
 
-    fb.file_add(download_hash, u.id, filename, expire,
+    fb.file_add(download_hash, user.id, filename, expire,
         one_time_download, download_password)
 
     # everything ok, return download url to client
@@ -170,6 +167,7 @@ def download_file():
         f.filename,
         as_attachment=attachment, cache_timeout=0)
 
+
 @app.route('/files', methods=['POST'])
 def files():
 
@@ -177,8 +175,9 @@ def files():
     password = request.form['password']
 
     fb = FbQuery()
+    pw = Password(config.get('settings', 'secret_key'))
 
-    if not valid_user(fb, username, password):
+    if not authenticate(fb, pw, username, password):
         return response(request, 'Invalid username or password', 401)
 
     return json.dumps({'message': fb.user_list_files(username)})
