@@ -134,7 +134,7 @@ class FbQuery:
                 self.file_remove(e.hash, e.filename)
         return True
 
-    def files_list(self, user):
+    def user_list_files(self, user):
         ''' return a dict with all files for user '''
         user = self.user_get(user)
         files = {}
@@ -147,4 +147,3 @@ class FbQuery:
             files[e.hash] = e.filename
 
         return files
-    

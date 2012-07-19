@@ -7,6 +7,7 @@ import os
 import hashlib
 import re
 import sys
+import json
 import ConfigParser as configparser
 from mimetypes import guess_type
 from datetime import datetime
@@ -40,6 +41,19 @@ def response(request, message, status_code):
     return render_template('message.html', message=message), status_code
 
 
+def valid_user(fb, username, password):
+
+    u = fb.user_get(username)
+    if u is None:
+        return False
+
+    pw = Password(config.get('settings', 'secret_key'))
+
+    if not pw.validate(u.password, password):
+        return False
+    return True
+
+
 @app.route('/', methods=['POST', 'GET'])
 def upload_file():
 
@@ -59,14 +73,8 @@ def upload_file():
 
     fb = FbQuery()
 
-    if not fb.user_exist(username):
-        return response(request, 'Could not find user', 401)
-
-    u = fb.user_get(username)
-    pw = Password(config.get('settings', 'secret_key'))
-
-    if not pw.validate(u.password, password):
-        return response(request, 'Invalid username/password', 401)
+    if not valid_user(fb, username, password):
+        return response(request, 'Invalid username or password', 401)
 
     allowed_expires = {
         '1h': datetime.now() + relativedelta(hours=1),
@@ -161,6 +169,19 @@ def download_file():
         download_hash),
         f.filename,
         as_attachment=attachment, cache_timeout=0)
+
+@app.route('/files', methods=['POST'])
+def files():
+
+    username = request.form['username']
+    password = request.form['password']
+
+    fb = FbQuery()
+
+    if not valid_user(fb, username, password):
+        return response(request, 'Invalid username or password', 401)
+
+    return json.dumps({'message': fb.user_list_files(username)})
 
 if __name__ == "__main__":
     app.run(debug=config.get('settings', 'debug'),
