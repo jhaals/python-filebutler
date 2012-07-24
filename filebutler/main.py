@@ -116,13 +116,35 @@ def upload_file():
 
     # everything ok, return download url to client
     return response(request,
-            ''.join([app.config['URL'], '/download?u=', download_hash]), 200)
+            ''.join([app.config['URL'], '/', download_hash]), 200)
 
 
-@app.route('/download', methods=['GET', 'POST'])
-def download_file():
+@app.route('/<download_hash>/delete', methods=['POST'])
+def delete(download_hash):
 
-    download_hash = request.args.get('u')
+    username = request.form['username']
+    password = request.form['password']
+
+    fb = FbQuery()
+    pw = Password(config.get('settings', 'secret_key'))
+
+    if not authenticate(fb, pw, username, password):
+        return response(request, 'Invalid username or password', 401)
+    f = fb.file_get(download_hash)
+
+    if not f:
+        return response(request, 'Could not find file', 410)
+    if f.user.username != username:
+        return response(request, 'You cant delete this file!', 401)
+
+    if not fb.file_remove(download_hash, f.filename):
+        return response(request, 'Could not delete file', 500)
+
+    return response(request, 'File deleted', 200)
+
+
+@app.route('/<download_hash>', methods=['GET', 'POST'])
+def download(download_hash):
 
     if not download_hash:
         return response(request, 'No download hash specified', 400)
@@ -188,31 +210,6 @@ def files():
 
     return json.dumps({'message': fb.user_list_files(username)})
 
-
-@app.route('/files/delete', methods=['POST'])
-def files_delete():
-
-    username = request.form['username']
-    password = request.form['password']
-    download_hash = request.form['download_hash']
-
-    fb = FbQuery()
-    pw = Password(config.get('settings', 'secret_key'))
-
-    if not authenticate(fb, pw, username, password):
-        return response(request, 'Invalid username or password', 401)
-
-    f = fb.file_get(download_hash)
-
-    if not f:
-        return response(request, 'Could not find file', 410)
-    if f.user.username != username:
-        return response(request, 'You cant delete this file!', 401)
-
-    if not fb.file_remove(download_hash, f.filename):
-        return response(request, 'Could not delete file', 500)
-
-    return response(request, 'File deleted', 200)
 
 
 if __name__ == "__main__":
