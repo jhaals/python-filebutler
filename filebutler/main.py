@@ -21,8 +21,14 @@ from dateutil.relativedelta import relativedelta
 from password import Password
 from fbquery import FbQuery
 
+paths = [
+    'python-filebutler.conf',
+    '/etc/python-filebutler.conf'
+]
+
 config = configparser.RawConfigParser()
-if not config.read('/etc/filebutler.conf'):
+
+if not config.read(paths):
     sys.exit("Couldn't read configuration file")
 
 app = Flask(__name__)
@@ -181,6 +187,33 @@ def files():
         return response(request, 'Invalid username or password', 401)
 
     return json.dumps({'message': fb.user_list_files(username)})
+
+
+@app.route('/files/delete', methods=['POST'])
+def files_delete():
+
+    username = request.form['username']
+    password = request.form['password']
+    download_hash = request.form['download_hash']
+
+    fb = FbQuery()
+    pw = Password(config.get('settings', 'secret_key'))
+
+    if not authenticate(fb, pw, username, password):
+        return response(request, 'Invalid username or password', 401)
+
+    f = fb.file_get(download_hash)
+
+    if not f:
+        return response(request, 'Could not find file', 410)
+    if f.user.username != username:
+        return response(request, 'You cant delete this file!', 401)
+
+    if not fb.file_remove(download_hash, f.filename):
+        return response(request, 'Could not delete file', 500)
+
+    return response(request, 'File deleted', 200)
+
 
 if __name__ == "__main__":
     app.run(debug=config.get('settings', 'debug'),

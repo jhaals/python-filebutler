@@ -7,14 +7,21 @@ from database import *
 from password import Password
 import sqlite3
 import os
+from ConfigParser import RawConfigParser
 from datetime import datetime
 
 
 class FbQuery:
 
     def __init__(self):
-        config = configparser.RawConfigParser()
-        if not config.read('/etc/filebutler.conf'):
+        paths = [
+            'python-filebutler.conf',
+            '/etc/python-filebutler.conf',
+        ]
+
+        config = RawConfigParser()
+
+        if not config.read(paths):
             sys.exit("Couldn't read configuration file")
 
         self.secret_key = config.get('settings', 'secret_key')
@@ -117,8 +124,8 @@ class FbQuery:
         try:
             os.remove(os.path.join(self.storage_path, download_hash, filename))
             os.removedirs(os.path.join(self.storage_path, download_hash))
-        except OSError as e:
-            print 'Failed to remove file %s' % e
+        except OSError:
+            return False
         dq = File.delete().where(hash=download_hash)
         dq.execute()
         # Todo: make sure it works

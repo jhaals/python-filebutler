@@ -6,13 +6,21 @@ import peewee
 import ConfigParser as configparser
 import sys
 
+paths = [
+    'python-filebutler.conf',
+    '/etc/python-filebutler.conf',
+]
+
 config = configparser.RawConfigParser()
-if not config.read('/etc/filebutler.conf'):
+
+if not config.read(paths):
         sys.exit("Couldn't read configuration file")
+
 
 class CustomModel(peewee.Model):
     class Meta:
         database = peewee.SqliteDatabase(config.get('settings', 'database_path'), threadlocals=True)
+
 
 class User(CustomModel):
     username = peewee.CharField()
