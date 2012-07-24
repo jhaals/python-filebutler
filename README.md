@@ -22,9 +22,11 @@ Ability to set expire date. 1 hour, 1 day, 1 week, 1 month
 Usage
 ------
 
-#### Upload files
+Headers must be set to __Accept: application/json__ else html will be returned
 
-Send POST to data to filebutler containing these fields.
+#### Upload file
+
+Send POST to data to __/__ containing these fields.
 
     file (mandatory(the file you wish to upload))
     username (mandatory)
@@ -33,7 +35,28 @@ Send POST to data to filebutler containing these fields.
     one_time_download (optional or 1)
     expire (optional or 1h, 1d, 1w or 1m)
 
-Headers must be set to __Accept: application/json__ else html will be returned
+#### Delete file
+
+Send POST to __/{hash}/delete__ containing these fields.
+
+    username
+    password
+
+#### List files
+
+Send POST to __/files__ containing these fields.
+
+    username
+    password
+
+
+Returns
+
+    { 'message' : {
+        'hash1': 'somefile.jpg',
+        'hash2': 'another file.jpg',
+        }
+    }
 
 ##### Response format
 Filebutler will return a json encoded message and throw http status codes.
