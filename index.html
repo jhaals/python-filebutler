@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Python-filebutler : minimalistic file sharing service" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Python-filebutler</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/JHaals/python-filebutler">View on GitHub</a>
+
+          <h1 id="project_title">Python-filebutler</h1>
+          <h2 id="project_tagline">minimalistic file sharing service</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/JHaals/python-filebutler/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/JHaals/python-filebutler/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>python-filebutler</h1>
+
+<p>filebutler is a small web app based on flask that allows you to upload(post) files over http/https and get a sha1 link in return.
+filebutler uses sqlite as backend to keep track of files.</p>
+
+<p>I suggest that you use python-filebutler together with <a href="http://github.com/jhaals/filebutler-upload" title="filebutler-upload">filebutler-upload</a> or write your own upload app.</p>
+
+<h2>Features</h2>
+
+<h6>Authentication</h6>
+
+<p>User/Password authentication to upload files.
+Passwords are stored hmac encrypted.</p>
+
+<h6>Password protected files</h6>
+
+<p>Ability to password protect your files.</p>
+
+<h6>One time download</h6>
+
+<p>Your file will only be available for one download.</p>
+
+<h6>Expire date</h6>
+
+<p>Ability to set expire date. 1 hour, 1 day, 1 week, 1 month</p>
+
+<h6>File Management</h6>
+
+<p>List/delete uploaded files</p>
+
+<h6>Upload form</h6>
+
+<p>Upload form for non-tech people</p>
+
+<h2>Usage</h2>
+
+<p>Headers must be set to <strong>Accept: application/json</strong> else html will be returned</p>
+
+<h4>Upload file</h4>
+
+<p>Send POST to data to <strong>/</strong> containing these fields.</p>
+
+<pre><code>file (mandatory(the file you wish to upload))
+username (mandatory)
+password (mandatory)
+download_password (optional)
+one_time_download (optional or 1)
+expire (optional or 1h, 1d, 1w or 1m)
+</code></pre>
+
+<h4>Delete file</h4>
+
+<p>Send POST to <strong>/{hash}/delete</strong> containing these fields.</p>
+
+<pre><code>username
+password
+</code></pre>
+
+<h4>List files</h4>
+
+<p>Send POST to <strong>/files</strong> containing these fields.</p>
+
+<pre><code>username
+password
+</code></pre>
+
+<p>Returns</p>
+
+<pre><code>{ 'message' : {
+    'hash1': 'somefile.jpg',
+    'hash2': 'another file.jpg',
+    }
+}
+</code></pre>
+
+<h5>Response format</h5>
+
+<p>Filebutler will return a json encoded message and throw http status codes.
+A successful upload will return status code 200 and a URL</p>
+
+<pre><code>{ "message": "http://upload.example.com/download?u=f1d2d2f924e986ac86fdf7b36c94bcdf32beec15" }
+</code></pre>
+
+<h4>manage.py</h4>
+
+<p>Perform management operations such as create/delete users.</p>
+
+<p>available commands:</p>
+
+<pre><code>--add-user &lt;username&gt;
+--delete-user &lt;username&gt;
+--change-password &lt;username&gt;
+--delete-expired-data
+</code></pre>
+
+<p>Expired files that's never been downloaded won't get removed automatically.
+It's recommended to run --delete-expired-data periodically to clean storage and database from expired files</p>
+
+<h2>Installation</h2>
+
+<p>Install python requirements using pip</p>
+
+<pre><code>pip install -r requirements.txt
+</code></pre>
+
+<ul>
+<li>  configure ppupload.conf and place it under /etc/filebutler.conf</li>
+<li>  create the directory specified as storage_path in filebutler.conf</li>
+<li>  changed the secret_key in filebutler.conf</li>
+<li>  Create users via manage.py --add-user </li>
+<li>  Run main.py</li>
+</ul><h3>Deployment</h3>
+
+<p>Simple deployment examples can be found at <a href="http://flask.pocoo.org/">http://flask.pocoo.org/</a></p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Python-filebutler maintained by <a href="https://github.com/JHaals">JHaals</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
