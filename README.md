@@ -18,6 +18,10 @@ Ability to password protect your files.
 Your file will only be available for one download.
 ###### Expire date
 Ability to set expire date. 1 hour, 1 day, 1 week, 1 month
+###### File Management
+List/delete uploaded files
+###### Upload form
+Upload form for non-tech people
 
 Usage
 ------
