@@ -77,10 +77,9 @@ class FbQuery:
     def user_delete(self, user):
         dq = User.delete().where(username=user)
         rows = dq.execute()
-        if rows == 0:
-            return '0 rows deleted, is there a user named %s?' % user
-        else:
-            return '%s rows deleted' % rows
+        if rows != 0:
+            return True
+        return False
 
     def user_change_password(self, user, password):
         encrypted_password = Password(self.secret_key).generate(password)
@@ -89,11 +88,8 @@ class FbQuery:
                 password=encrypted_password).where(username=user)
             rows = uq.execute()
             if rows != 0:
-                return 'User password changed to %s' % password
-            else:
-                return 'Something went wrong'
-        else:
-            return "There's no user named %s" % user
+                return True
+        return False
 
     def file_add(self, download_hash, user_id, filename, expire,
             one_time_download, download_password):

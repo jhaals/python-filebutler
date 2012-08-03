@@ -112,11 +112,17 @@ if options.add_user:
     print fb.user_create(options.add_user, password)
 
 if options.delete_user:
-    print fb.user_delete(options.delete_user)
+    if fb.user_delete(options.delete_user):
+        print 'User deleted'
+    else:
+        print 'Could not delete %s' % options.delete_user
 
 if options.change_password:
     password = getpass.getpass('New password: ')
-    print fb.user_change_password(options.change_password, password)
+    if fb.user_change_password(options.change_password, password):
+        print 'Password changed.'
+    else:
+        print 'Could not change password'
 
 if options.delete_expired_data:
     fb.file_remove_expired()
