@@ -11,6 +11,7 @@ import json
 import ConfigParser as configparser
 from mimetypes import guess_type
 from datetime import datetime
+from urlparse import urljoin
 
 # Third party
 from flask import Flask, request, send_from_directory, render_template, jsonify
@@ -115,8 +116,7 @@ def upload_file():
         one_time_download, download_password)
 
     # everything ok, return download url to client
-    return response(request,
-            ''.join([app.config['URL'], '/', download_hash]), 200)
+    return response(request, urljoin(app.config['URL'], download_hash), 200)
 
 
 @app.route('/<download_hash>/delete', methods=['POST'])
