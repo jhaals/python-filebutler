@@ -3,6 +3,7 @@
 # All rights reserved.
 
 import peewee
+import datetime
 import ConfigParser as configparser
 import sys
 
@@ -37,6 +38,7 @@ class File(CustomModel):
     expire = peewee.TextField()
     one_time_download = peewee.BooleanField()
     download_password = peewee.TextField()
+    upload_date = peewee.DateTimeField(default=datetime.datetime.now)
 
     def __unicode__(self):
         return self.hash
