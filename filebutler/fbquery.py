@@ -140,13 +140,19 @@ class FbQuery:
     def user_list_files(self, user):
         ''' return a dict with all files for user '''
         user = self.user_get(user)
-        files = {}
         if not user:
             return None
 
         sq = File.select().where(user_id=user.id)
         # add to dict
-        for e in sq.execute():
-            files[e.hash] = e.filename
+        files = {}
+        files['message'] = {}
 
+        for e in sq.execute():
+            files['message'][e.hash] = {
+                    'filename': e.filename,
+                    'expire': e.expire,
+                    'one_time_download': e.one_time_download,
+                    'upload_date': e.upload_date.strftime('%Y%m%d%H%M%S')
+            }
         return files

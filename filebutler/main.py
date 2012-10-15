@@ -208,7 +208,7 @@ def files():
     if not authenticate(fb, pw, username, password):
         return response(request, 'Invalid username or password', 401)
 
-    return json.dumps({'message': fb.user_list_files(username)})
+    return json.dumps(fb.user_list_files(username))
 
 
 
