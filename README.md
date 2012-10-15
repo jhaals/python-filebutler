@@ -56,11 +56,22 @@ Send POST to __/files__ containing these fields.
 
 Returns
 
-    { 'message' : {
-        'hash1': 'somefile.jpg',
-        'hash2': 'another file.jpg',
+    {"message":
+        {u'f9ad45eec5bc050a9f529f1ca403r0f0591390081': {
+            u'upload_date': u'20121014151736',
+            u'one_time_download': True,
+            u'expire': u'0',
+            u'filename': u'somefile.jpg'}
+        },
+        {u'f9ad45eec5bc050a9f529f13a4750f0591390081': {
+            u'upload_date': u'20121014151736',
+            u'one_time_download': False,
+            u'expire': u'0',
+            u'filename': u'pictures.zip'}
         }
     }
+
+upload date format: %Y%m%d%H%M%S
 
 ##### Response format
 Filebutler will return a json encoded message and throw http status codes.
