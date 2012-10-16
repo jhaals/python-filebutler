@@ -133,7 +133,7 @@ class FbQuery:
 
         for e in sq.execute():
             if self.file_expired(e.expire):
-                print 'removed %s' % e.filename
+                print 'Deleted: %s | Owner: %s | Upload date: %s' % (e.filename, e.user.username, e.upload_date)
                 self.file_remove(e.hash, e.filename)
         return True
 
