@@ -99,12 +99,23 @@ password
 
 <p>Returns</p>
 
-<pre><code>{ 'message' : {
-    'hash1': 'somefile.jpg',
-    'hash2': 'another file.jpg',
+<pre><code>{"message":
+    {u'f9ad45eec5bc050a9f529f1ca403r0f0591390081': {
+        u'upload_date': u'20121014151736',
+        u'one_time_download': True,
+        u'expire': u'0',
+        u'filename': u'somefile.jpg'}
+    },
+    {u'f9ad45eec5bc050a9f529f13a4750f0591390081': {
+        u'upload_date': u'20121014151736',
+        u'one_time_download': False,
+        u'expire': u'0',
+        u'filename': u'pictures.zip'}
     }
 }
 </code></pre>
+
+<p>upload date format: %Y%m%d%H%M%S</p>
 
 <h5>Response format</h5>
 
