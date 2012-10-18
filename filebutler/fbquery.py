@@ -67,12 +67,10 @@ class FbQuery:
     def user_create(self, user, password):
         """ Create new user """
         encrypted_password = Password(self.secret_key).generate(password)
-        if not self.user_exist(user):
-            u = User(username=user, password=encrypted_password)
-            u.save()
-            return 'Created %s with password %s' % (user, password)
-        else:
-            return 'User already exist'
+        u = User(username=user, password=encrypted_password)
+        u.save()
+        # Todo: Verify that query succseeds
+        return True
 
     def user_delete(self, user):
         dq = User.delete().where(username=user)
