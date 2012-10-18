@@ -90,39 +90,73 @@ if not config.read(paths):
 
 from fbquery import FbQuery
 
-parser = ArgumentParser(usage='%(prog)s -h')
-group = parser.add_mutually_exclusive_group(required=True)
-group.add_argument('--add-user',
-    metavar='<username>', help='Adds a new user')
 
-group.add_argument('--delete-user',
-    metavar='<username>', help='Deletes an existing user')
-
-group.add_argument('--change-password',
-    metavar='<username>', help='Change password of an existing user')
-
-group.add_argument('--delete-expired-data',
-    action='store_true', help='Delete expired data from database')
-
-options = parser.parse_args()
-fb = FbQuery()
-
-if options.add_user:
-    password = getpass.getpass('Password:')
-    print fb.user_create(options.add_user, password)
-
-if options.delete_user:
-    if fb.user_delete(options.delete_user):
-        print 'User deleted'
+def user_add(options):
+    if options.password:
+        password = options.password
     else:
-        print 'Could not delete %s' % options.delete_user
+        password = getpass.getpass('Password:')
 
-if options.change_password:
-    password = getpass.getpass('New password: ')
-    if fb.user_change_password(options.change_password, password):
-        print 'Password changed.'
+    if fb.user_exist(options.username):
+        print 'User %s already exists!' % options.username
     else:
-        print 'Could not change password'
+        if fb.user_create(options.username, password):
+            print 'Created user %s' % options.username
+        else:
+            print 'failed to create user %s' % options.username
 
-if options.delete_expired_data:
+def user_delete(options):
+    if options.username:
+        if fb.user_delete(options.username):
+            print 'User %s deleted' % options.username
+        else:
+            print 'Could not delete %s' % options.username
+
+def user_change_password(options):
+    if options.password:
+        password = options.password
+    else:
+        password = getpass.getpass('Password:')
+
+    if fb.user_change_password(options.username, password):
+        print 'Password changed'
+    else:
+        print 'Password change failed'
+
+def delete_expired_data():
     fb.file_remove_expired()
+
+def parse_arguments():
+    parser = ArgumentParser(usage='%(prog)s -h')
+    subparsers = parser.add_subparsers()
+
+    parser_user_add = subparsers.add_parser('user-add')
+    parser_user_add.set_defaults(command=user_add)
+    parser_user_add.add_argument('username',
+        metavar='<username>', help='Username for new user')
+    parser_user_add.add_argument('-p', '--password',
+        metavar='<password>', help='password for new user')
+
+    parser_user_delete = subparsers.add_parser('user-delete')
+    parser_user_delete.set_defaults(command=user_delete)
+    parser_user_delete.add_argument('username',
+        metavar='<username>', help='Username to delete')
+
+    parser_user_change_password = subparsers.add_parser('user-change-password')
+    parser_user_change_password.set_defaults(command=user_change_password)
+    parser_user_change_password.add_argument('username',
+        metavar='<username>', help='User to change password for')
+    parser_user_change_password.add_argument('-p', '--password',
+        metavar='<password>', help='New password for user')
+
+    parser_delete_expired_data = subparsers.add_parser('delete-expired-data')
+    parser_delete_expired_data.set_defaults(command=delete_expired_data)
+
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    fb = FbQuery()
+    options = parse_arguments()
+    if hasattr(options, 'command'):
+        options.command(options)
