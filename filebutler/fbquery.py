@@ -84,10 +84,9 @@ class FbQuery:
         if self.user_exist(user):
             uq = UpdateQuery(User,
                 password=encrypted_password).where(username=user)
-            rows = uq.execute()
-            if rows != 0:
-                return True
-        return False
+            if uq.execute() == 0:
+                return False
+        return True
 
     def file_add(self, download_hash, user_id, filename, expire,
             one_time_download, download_password):
@@ -100,7 +99,8 @@ class FbQuery:
 
     def file_set_expiry(self, download_hash, date):
         uq = File.update(expire=date).where(hash=download_hash)
-        uq.execute()
+        if uq.execute() == 0:
+            return False
         return True
 
     def file_expired(expire, expire_date):
@@ -119,10 +119,10 @@ class FbQuery:
             os.remove(os.path.join(self.storage_path, download_hash, filename))
             os.removedirs(os.path.join(self.storage_path, download_hash))
         except OSError:
-            return False
+            pass
         dq = File.delete().where(hash=download_hash)
-        dq.execute()
-        # Todo: make sure it works
+        if dq.execute() == 0:
+            return False
         return True
 
     def file_remove_expired(self):
