@@ -69,7 +69,7 @@ class FbQuery:
         encrypted_password = Password(self.secret_key).generate(password)
         u = User(username=user, password=encrypted_password)
         u.save()
-        # Todo: Verify that query succseeds
+        # Todo: Verify that query succeeds
         return True
 
     def user_delete(self, user):
@@ -90,7 +90,7 @@ class FbQuery:
 
     def file_add(self, download_hash, user_id, filename, expire,
             one_time_download, download_password):
-        ''' Add file information to database. '''
+        """ Add file information to database. """
         f = File(hash=download_hash, user=user_id, filename=filename,
                 expire=expire, one_time_download=one_time_download,
                 download_password=download_password)
@@ -103,7 +103,7 @@ class FbQuery:
             return False
         return True
 
-    def file_expired(expire, expire_date):
+    def file_expired(self, expire_date):
         expire_date = datetime.strptime(expire_date, '%Y%m%d%H%M%S')
 
         if datetime.now() > expire_date:
@@ -113,7 +113,7 @@ class FbQuery:
             return False
 
     def file_remove(self, download_hash, filename):
-        ''' remove file from storage and database '''
+        """ remove file from storage and database """
 
         try:
             os.remove(os.path.join(self.storage_path, download_hash, filename))
@@ -126,7 +126,7 @@ class FbQuery:
         return True
 
     def file_remove_expired(self):
-        ''' remove all expired files from database '''
+        """ remove all expired files from database """
         sq = File.select().where(~Q(expire='0'))
 
         for e in sq.execute():
@@ -136,15 +136,14 @@ class FbQuery:
         return True
 
     def user_list_files(self, user):
-        ''' return a dict with all files for user '''
+        """ return a dict with all files for user """
         user = self.user_get(user)
         if not user:
             return None
 
         sq = File.select().where(user_id=user.id)
         # add to dict
-        files = {}
-        files['message'] = {}
+        files = {'message': {}}
 
         for e in sq.execute():
             files['message'][e.hash] = {
