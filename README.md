@@ -103,7 +103,7 @@ Install python requirements using pip
 -   configure ppupload.conf and place it under /etc/filebutler.conf
 -   create the directory specified as storage_path in filebutler.conf
 -   changed the secret_key in filebutler.conf
--   Create users via manage.py --add-user <username>
+-   Create users via manage.py user-add <username> -p <password>
 -   Run main.py
 
 ### Deployment
