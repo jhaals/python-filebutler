@@ -106,6 +106,7 @@ class PasswordTests(unittest.TestCase):
         self.fb.user_create('testuser', 'password')
         self.fb.file_add(hash, 1, testfile, expire_date, False, False)
         self.assertEqual(testfile, self.fb.file_remove_expired()['message'][hash]['filename'])
+        self.fb.file_remove(hash, testfile)
         self.fb.user_delete('testuser')
 
 if __name__ == "__main__":
