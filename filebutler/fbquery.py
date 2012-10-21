@@ -104,13 +104,15 @@ class FbQuery:
         return True
 
     def file_expired(self, expire_date):
-        expire_date = datetime.strptime(expire_date, '%Y%m%d%H%M%S')
+        try:
+            expire_date = datetime.strptime(expire_date, '%Y%m%d%H%M%S')
+        except ValueError:
+            return False
 
         if datetime.now() > expire_date:
             # Expired
             return True
-        else:
-            return False
+        return False
 
     def file_remove(self, download_hash, filename):
         """ remove file from storage and database """
