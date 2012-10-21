@@ -84,9 +84,9 @@ class FbQuery:
         if self.user_exist(user):
             uq = UpdateQuery(User,
                 password=encrypted_password).where(username=user)
-            if uq.execute() == 0:
-                return False
-        return True
+            if uq.execute() != 0:
+                return True
+        return False
 
     def file_add(self, download_hash, user_id, filename, expire,
             one_time_download, download_password):
