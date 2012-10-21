@@ -123,8 +123,9 @@ def user_change_password(options):
     else:
         print 'Password change failed'
 
-def delete_expired_data():
-    fb.file_remove_expired()
+def delete_expired_data(options):
+    for hash, file in fb.file_remove_expired()['message'].iteritems():
+        print hash, file['filename'], file['owner']
 
 def parse_arguments():
     parser = ArgumentParser(usage='%(prog)s -h')
