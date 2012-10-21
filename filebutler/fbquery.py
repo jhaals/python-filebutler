@@ -119,7 +119,7 @@ class FbQuery:
 
         try:
             os.remove(os.path.join(self.storage_path, download_hash, filename))
-            os.removedirs(os.path.join(self.storage_path, download_hash))
+            os.rmdir(os.path.join(self.storage_path, download_hash))
         except OSError:
             pass
         dq = File.delete().where(hash=download_hash)
