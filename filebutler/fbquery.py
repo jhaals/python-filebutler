@@ -131,11 +131,19 @@ class FbQuery:
         """ remove all expired files from database """
         sq = File.select().where(~Q(expire='0'))
 
+        deleted_files = {'message': {}}
+
         for e in sq.execute():
             if self.file_expired(e.expire):
-                print 'Deleted: %s | Owner: %s | Upload date: %s' % (e.filename, e.user.username, e.upload_date)
+                deleted_files['message'][e.hash] = {
+                    'filename': e.filename,
+                    'expire': e.expire,
+                    'one_time_download': e.one_time_download,
+                    'upload_date': e.upload_date.strftime('%Y%m%d%H%M%S'),
+                    'owner': e.user.username
+                }
                 self.file_remove(e.hash, e.filename)
-        return True
+        return deleted_files
 
     def user_list_files(self, user):
         """ return a dict with all files for user """
