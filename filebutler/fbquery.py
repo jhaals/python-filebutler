@@ -73,7 +73,7 @@ class FbQuery:
         return True
 
     def user_delete(self, user):
-        dq = User.delete().where(username=user)
+        dq = User.delete().where(User.username == user)
         rows = dq.execute()
         if rows != 0:
             return True
@@ -82,8 +82,7 @@ class FbQuery:
     def user_change_password(self, user, password):
         encrypted_password = Password(self.secret_key).generate(password)
         if self.user_exist(user):
-            uq = UpdateQuery(User,
-                password=encrypted_password).where(username=user)
+            uq = User.update(password = encrypted_password).where(User.username == user)
             if uq.execute() != 0:
                 return True
         return False
@@ -98,7 +97,7 @@ class FbQuery:
         return True
 
     def file_set_expiry(self, download_hash, date):
-        uq = File.update(expire=date).where(hash=download_hash)
+        uq = File.update(expire=date).where(File.hash == download_hash)
         if uq.execute() == 0:
             return False
         return True
@@ -122,14 +121,14 @@ class FbQuery:
             os.rmdir(os.path.join(self.storage_path, download_hash))
         except OSError:
             pass
-        dq = File.delete().where(hash=download_hash)
+        dq = File.delete().where(File.hash == download_hash)
         if dq.execute() == 0:
             return False
         return True
 
     def file_remove_expired(self):
         """ remove all expired files from database """
-        sq = File.select().where(~Q(expire='0'))
+        sq = File.select().where(File.expire != False)
 
         deleted_files = {'message': {}}
 
@@ -151,7 +150,7 @@ class FbQuery:
         if not user:
             return None
 
-        sq = File.select().where(user_id=user.id)
+        sq = File.select().where(File.user == user.id)
         # add to dict
         files = {'message': {}}
 
