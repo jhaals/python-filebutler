@@ -2,7 +2,6 @@
 # Copyright (c) 2011-2012, Johan Haals <johan.haals@gmail.com>
 # All rights reserved.
 
-from peewee import UpdateQuery, Q
 from database import *
 from password import Password
 import sqlite3
