@@ -118,6 +118,20 @@ def upload_file():
     # everything ok, return download url to client
     return response(request, urljoin(app.config['URL'], download_hash), 200)
 
+@app.route('/purge', methods=['POST'])
+def delete(purge):
+    username = request.form['username']
+    password = request.form['password']
+
+    fb = FbQuery()
+    pw = Password(config.get('settings', 'secret_key'))
+
+    if not authenticate(fb, pw, username, password):
+        return response(request, 'Invalid username or password', 401)
+
+    fb.user_remove_all_files(username)
+
+    return response(request, 'Files deleted', 200)
 
 @app.route('/<download_hash>/delete', methods=['POST'])
 def delete(download_hash):
@@ -211,6 +225,27 @@ def files():
     return json.dumps(fb.user_list_files(username))
 
 
+@app.route('/user/<user_to_update>/change_password', methods=['POST'])
+def change_password(user_to_update):
+
+    username = request.form['username']
+    password = request.form['password']
+    new_password = request.form['new_password']
+
+    fb = FbQuery()
+    pw = Password(config.get('settings', 'secret_key'))
+
+    if not authenticate(fb, pw, username, password):
+        return response(request, 'Invalid username or password', 401)
+
+    if not username != user_to_update:
+        if not fb.user_is_admin(username):
+            return response(request, 'Permission denied.', 403)
+
+    if not fb.user_change_password(username, new_password):
+        return response(request, 'Could not change password', 500)
+
+    return response(request, 'Password changed', 200)
 
 if __name__ == "__main__":
     app.run(debug=config.get('settings', 'debug'),

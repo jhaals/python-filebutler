@@ -13,6 +13,7 @@ from datetime import datetime
 class FbQuery:
 
     def __init__(self):
+
         paths = [
             'python-filebutler.conf',
             '/etc/python-filebutler.conf',
@@ -111,6 +112,12 @@ class FbQuery:
             # Expired
             return True
         return False
+
+    def user_remove_all_files(self, user):
+        # TODO: write tests
+        files = File.select().where(File.user == User.get(User.username == user).id)
+        for file in files.execute():
+            self.file_remove(file.hash, file.filename)
 
     def file_remove(self, download_hash, filename):
         """ remove file from storage and database """
