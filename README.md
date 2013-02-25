@@ -109,4 +109,5 @@ Install python requirements using pip
 ### Deployment
 Simple deployment examples can be found at http://flask.pocoo.org/
 
-
+### Upload form
+![](http://haals.se/screens/filebutler-webgui.png)
