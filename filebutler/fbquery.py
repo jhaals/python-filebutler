@@ -45,6 +45,8 @@ class FbQuery:
     def file_get(self, hash):
         """ Get all fileinfo from database """
         try:
+            fq = File.update(downloads=File.downloads + 1).where(File.hash == hash)
+            fq.execute()
             return File.get(hash=hash)
         except File.DoesNotExist:
             return None
@@ -90,9 +92,13 @@ class FbQuery:
     def file_add(self, download_hash, user_id, filename, expire,
             one_time_download, download_password):
         """ Add file information to database. """
-        f = File(hash=download_hash, user=user_id, filename=filename,
-                expire=expire, one_time_download=one_time_download,
-                download_password=download_password)
+        f = File(hash=download_hash,
+                 user=user_id,
+                 filename=filename,
+                 expire=expire,
+                 one_time_download=one_time_download,
+                 download_password=download_password,
+                 downloads=0)
         f.save()
         return True
 
@@ -162,9 +168,10 @@ class FbQuery:
 
         for e in sq.execute():
             files['message'][e.hash] = {
-                    'filename': e.filename,
-                    'expire': e.expire,
-                    'one_time_download': e.one_time_download,
-                    'upload_date': e.upload_date.strftime('%Y%m%d%H%M%S')
+                'filename': e.filename,
+                'expire': e.expire,
+                'one_time_download': e.one_time_download,
+                'upload_date': e.upload_date.strftime('%Y%m%d%H%M%S'),
+                'downloads': e.downloads
             }
         return files
