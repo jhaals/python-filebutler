@@ -22,6 +22,8 @@ Ability to set expire date. 1 hour, 1 day, 1 week, 1 month
 List/delete uploaded files
 ###### Upload form
 Upload form for non-tech people
+###### Download counter
+Every download counts
 
 Usage
 ------
@@ -60,12 +62,14 @@ Returns
         {u'f9ad45eec5bc050a9f529f1ca403r0f0591390081': {
             u'upload_date': u'20121014151736',
             u'one_time_download': True,
+            u'downloads': u'35',
             u'expire': u'0',
             u'filename': u'somefile.jpg'}
         },
         {u'f9ad45eec5bc050a9f529f13a4750f0591390081': {
             u'upload_date': u'20121014151736',
             u'one_time_download': False,
+            u'downloads': u'133',
             u'expire': u'0',
             u'filename': u'pictures.zip'}
         }
@@ -100,7 +104,7 @@ Install python requirements using pip
 
     pip install -r requirements.txt
 
--   configure ppupload.conf and place it under /etc/filebutler.conf
+-   configure filebutler/conf/filebutler.conf and place it in /etc/filebutler.conf
 -   create the directory specified as storage_path in filebutler.conf
 -   changed the secret_key in filebutler.conf
 -   Create users via manage.py user-add <username> -p <password>
