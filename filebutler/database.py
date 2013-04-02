@@ -39,6 +39,7 @@ class File(CustomModel):
     one_time_download = peewee.BooleanField()
     download_password = peewee.TextField()
     upload_date = peewee.DateTimeField(default=datetime.datetime.now)
+    downloads = peewee.IntegerField()
 
     def __unicode__(self):
         return self.hash
