@@ -119,7 +119,7 @@ def upload_file():
     return response(request, urljoin(app.config['URL'], download_hash), 200)
 
 @app.route('/purge', methods=['POST'])
-def delete(purge):
+def purge():
     username = request.form['username']
     password = request.form['password']
 
