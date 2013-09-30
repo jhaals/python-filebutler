@@ -32,9 +32,14 @@ def ask(question, yes_no=False):
 def configuration_tutorial():
     print "python-filebutler couldn't detect the configuration file."
     print
-    print 'Specify address to the webserver where filebutler is running'
+    print 'Specify address to the webserver where filebutler should run'
+    print 'The URL will be used to assemble download links'
     print "If you want to test locally use: http://127.0.0.1:5000"
     url = ask('url')
+    try:
+        port = url.split(':')[2]
+    except IndexError:
+        sys.exit('Could not detect port in URL')
 
     debug = ask('Enable debug mode', yes_no=True)
     if debug:
@@ -68,13 +73,20 @@ def configuration_tutorial():
         print 'Writing config file to %s' % config_path
 
         with open(config_path, 'w') as f:
-            f.write('[settings]\n')
-            f.write('url = %s\n' % url)
-            f.write('debug = %s\n' % debug)
-            f.write('port = 5000')
-            f.write('storage_path = %s\n' % storage_path)
-            f.write('database_path = %s\n' % database_path)
-            f.write('secret_key = %s\n' % secret_key)
+            f.write('''[settings]
+url = {url}
+debug = {debug}
+port = {port}
+storage_path = {storage_path}
+database_path = {database_path}
+secret_key = {secret_key}
+'''.format(
+    url=url,
+    debug=debug,
+    port=port,
+    storage_path=storage_path,
+    database_path=database_path,
+    secret_key=secret_key))
     else:
         # restart tutorial...
         configuration_tutorial()
